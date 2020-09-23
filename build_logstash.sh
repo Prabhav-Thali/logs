@@ -76,6 +76,7 @@ function configureAndInstall() {
 		cd /usr/local/jffi
 		ant
 		export LD_LIBRARY_PATH=$CURDIR/jffi-jffi-1.3.0/build/jni/:$CURDIR/jffi-jffi-1.3.0/build/jni/libffi-s390x-linux/.libs:$LD_LIBRARY_PATH
+		export JAVA_HOME=/opt/adopt/java
 	fi
 	
         # Downloading and installing Logstash
@@ -182,22 +183,20 @@ case "$DISTRO" in
 
 "rhel-7.6" | "rhel-7.7" | "rhel-7.8" | "rhel-8.1" | "rhel-8.2" )
         printf -- "Installing %s %s for %s \n" "$PACKAGE_NAME" "$PACKAGE_VERSION" "$DISTRO" |& tee -a "${LOG_FILE}"
-        sudo yum install -y ant gcc gzip make tar unzip wget zip |& tee -a "${LOG_FILE}"
-        #java-1.8.0-openjdk 
+        sudo yum install -y ant gcc gzip make tar unzip wget zip java-1.8.0-openjdk |& tee -a "${LOG_FILE}"
 	cd "${CURDIR}"
 	sudo mkdir -p /opt/adopt/java
 	curl -SL -o adoptjdk.tar.gz  https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.8%2B10/OpenJDK11U-jdk_s390x_linux_hotspot_11.0.8_10.tar.gz
 	sudo tar -zxvf adoptjdk.tar.gz -C /opt/adopt/java --strip-components 1
 	rm -rf adoptjdk.tar.gz
-	export JAVA_HOME=/opt/adopt/java
-        #export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk/
+        export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk/
         configureAndInstall |& tee -a "${LOG_FILE}"
         ;;
 
 "sles-12.5")
         printf -- "Installing %s %s for %s \n" "$PACKAGE_NAME" "$PACKAGE_VERSION" "$DISTRO" |& tee -a "${LOG_FILE}"
         sudo zypper install -y ant gawk gcc gzip java-1_8_0-openjdk-devel make tar unzip wget zip |& tee -a "${LOG_FILE}"
-	      export JAVA_HOME=/usr/lib64/jvm/java-1.8.0-openjdk/
+	export JAVA_HOME=/usr/lib64/jvm/java-1.8.0-openjdk/
         configureAndInstall |& tee -a "${LOG_FILE}"
         ;;
 

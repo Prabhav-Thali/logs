@@ -55,7 +55,7 @@ function prepare() {
 }
 
 function cleanup() {
-        sudo rm -rf "${CURDIR}/jffi-1.3.0.tar.gz" "${CURDIR}/logstash-oss-${PACKAGE_VERSION}.tar.gz"
+        sudo rm -rf "${CURDIR}/jffi-1.2.23.tar.gz" "${CURDIR}/logstash-oss-${PACKAGE_VERSION}.tar.gz"
         printf -- 'Cleaned up the artifacts\n' >>"${LOG_FILE}"
 }
 
@@ -70,12 +70,12 @@ function configureAndInstall() {
 		printf -- 'Installing jffi.\n'
 		cd "${CURDIR}"
 		sudo mkdir -p /usr/local/jffi
-		sudo wget https://github.com/jnr/jffi/archive/jffi-1.3.0.tar.gz
-		sudo tar -xzvf jffi-1.3.0.tar.gz -C /usr/local/jffi --strip-components 1
+		sudo wget https://github.com/jnr/jffi/archive/jffi-1.2.23.tar.gz
+		sudo tar -xzvf jffi-1.2.23.tar.gz -C /usr/local/jffi --strip-components 1
 		sudo chown "$(whoami)" -R /usr/local/jffi
 		cd /usr/local/jffi
 		ant
-		export LD_LIBRARY_PATH=$CURDIR/jffi-jffi-1.3.0/build/jni/:$CURDIR/jffi-jffi-1.3.0/build/jni/libffi-s390x-linux/.libs:$LD_LIBRARY_PATH
+		export LD_LIBRARY_PATH=$CURDIR/jffi-jffi-1.2.23/build/jni/:$CURDIR/jffi-jffi-1.2.23/build/jni/libffi-s390x-linux/.libs:$LD_LIBRARY_PATH
 		export JAVA_HOME=/opt/adopt/java
 	fi
 	

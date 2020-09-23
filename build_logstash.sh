@@ -97,13 +97,13 @@ function configureAndInstall() {
 	# Recreating jruby-complete jar file to include platform.conf
         printf -- 'Applying fix for ffi java.lang.NullPointerException exception.\n' |& tee -a "${LOG_FILE}"
         cd /usr/share/logstash/logstash-core/lib/jars
-        unzip jruby-complete-9.2.11.1.jar -d jruby-complete-9.2.11.1
-        cd jruby-complete-9.2.11.1/META-INF/jruby.home/lib/ruby/stdlib/ffi/platform/s390x-linux
+        unzip jruby-complete-9.2.13.0.jar -d jruby-complete-9.2.13.0
+        cd jruby-complete-9.2.13.0/META-INF/jruby.home/lib/ruby/stdlib/ffi/platform/s390x-linux
         cp -n types.conf platform.conf
-        cd /usr/share/logstash/logstash-core/lib/jars/jruby-complete-9.2.11.1
-        zip -r ../jruby-complete-9.2.11.1.jar *
+        cd /usr/share/logstash/logstash-core/lib/jars/jruby-complete-9.2.13.0
+        zip -r ../jruby-complete-9.2.13.0.jar *
         cd  /usr/share/logstash/
-        rm -rf /usr/share/logstash/logstash-core/lib/jars/jruby-complete-9.2.11.1
+        rm -rf /usr/share/logstash/logstash-core/lib/jars/jruby-complete-9.2.13.0
         printf -- 'Recreated jruby-complete jar file to include platform.conf\n' |& tee -a "${LOG_FILE}"
         printf -- 'Installed Logstash successfully \n'
         

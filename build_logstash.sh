@@ -184,11 +184,12 @@ case "$DISTRO" in
         printf -- "Installing %s %s for %s \n" "$PACKAGE_NAME" "$PACKAGE_VERSION" "$DISTRO" |& tee -a "${LOG_FILE}"
         sudo yum install -y ant gcc gzip make tar unzip wget zip |& tee -a "${LOG_FILE}"
         #java-1.8.0-openjdk 
-	      cd "${CURDIR}"
-				curl -SL -o adoptjdk.tar.gz  https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.8%2B10/OpenJDK11U-jdk_s390x_linux_hotspot_11.0.8_10.tar.gz
-				sudo tar -zxvf adoptjdk.tar.gz -C /opt/adopt/java --strip-components 1
-				rm -rf adoptjdk.tar.gz
-				export JAVA_HOME=/opt/adopt/java
+	cd "${CURDIR}"
+	sudo mkdir -p /opt/adopt/java
+	curl -SL -o adoptjdk.tar.gz  https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.8%2B10/OpenJDK11U-jdk_s390x_linux_hotspot_11.0.8_10.tar.gz
+	sudo tar -zxvf adoptjdk.tar.gz -C /opt/adopt/java --strip-components 1
+	rm -rf adoptjdk.tar.gz
+	export JAVA_HOME=/opt/adopt/java
         #export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk/
         configureAndInstall |& tee -a "${LOG_FILE}"
         ;;

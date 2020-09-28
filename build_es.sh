@@ -234,7 +234,43 @@ function runTest() {
         export JAVA_HOME=/opt/adopt/java
         export JAVA11_HOME=/opt/adopt/java
         export RUNTIME_JAVA_HOME=$JAVA_HOME
+    elif [[ "$JAVA_PROVIDED" == "AdoptJDK11_hotspot" ]]; then
+        export JAVA_HOME=/opt/adopt/java
+        export JAVA11_HOME=/opt/adopt/java
+        export RUNTIME_JAVA_HOME=$JAVA_HOME
+    elif [[ "$JAVA_PROVIDED" == "OpenJDK11" ]]; then 
+        if [[ "$VERSION_ID" == "18.04" ]]; then
+                export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-s390x
+                export JAVA11_HOME=/usr/lib/jvm/java-11-openjdk-s390x
+	    elif [[ "${ID}" == "rhel" ]]; then
+	        if [[ $DISTRO == "rhel-8.1" ]]; then				
+			# Inside rhel 8.1
+			echo "Inside RHEL 8.1"
+                	export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-11.0.6.10-0.el8_1.s390x
+                	export JAVA11_HOME=/usr/lib/jvm/java-11-openjdk-11.0.6.10-0.el8_1.s390x
+			export PATH=$JAVA_HOME/bin:$PATH
+			java -version
+		    elif [[ $DISTRO == "rhel-8.2" ]]; then
+		        # Inside rhel 8.2      
+			echo "Inside RHEL 8.2"
+                	export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-11.0.7.10-1.el8_1.s390x
+			export JAVA11_HOME=/usr/lib/jvm/java-11-openjdk-11.0.7.10-1.el8_1.s390x
+			export PATH=$JAVA_HOME/bin:$PATH
+			java -version
+		    else 
+			# Inside rhel 7.x
+			echo "Inside RHEL 7x"
+			export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-11.0.6.10-3.el7.s390x
+                	export JAVA11_HOME=/usr/lib/jvm/java-11-openjdk-11.0.6.10-3.el7.s390x
+			export PATH=$JAVA_HOME/bin:$PATH
+                	java -version
+		    fi
+        elif [[ "${ID}" == "sles" ]]; then
+		export JAVA_HOME=/usr/lib64/jvm/java-11-openjdk-11
+            	export JAVA11_HOME=/usr/lib64/jvm/java-11-openjdk-11
+        fi
     fi
+
 
     cd "${CURDIR}/elasticsearch"
 	set +e

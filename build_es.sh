@@ -68,32 +68,139 @@ function configureAndInstall() {
         printf -- '\nConfiguration and Installation started \n'
 
         #Installing dependencies
-        printf -- 'User responded with Yes. \n'
-        printf -- 'Downloading OpenJDK 14 with HotSpot. \n'
+        #printf -- 'User responded with Yes. \n'
+        #printf -- 'Downloading OpenJDK 14 with HotSpot. \n'
 
-        curl -SLO https://github.com/AdoptOpenJDK/openjdk14-binaries/releases/download/jdk-14.0.2%2B12/OpenJDK14U-jdk_s390x_linux_hotspot_14.0.2_12.tar.gz
-        sudo tar -C /usr/local -xzf OpenJDK14U-jdk_s390x_linux_hotspot_14.0.2_12.tar.gz
-        export PATH=/usr/local/jdk-14.0.2+12/bin:$PATH
+        #curl -SLO https://github.com/AdoptOpenJDK/openjdk14-binaries/releases/download/jdk-14.0.2%2B12/OpenJDK14U-jdk_s390x_linux_hotspot_14.0.2_12.tar.gz
+        #sudo tar -C /usr/local -xzf OpenJDK14U-jdk_s390x_linux_hotspot_14.0.2_12.tar.gz
+        #export PATH=/usr/local/jdk-14.0.2+12/bin:$PATH
+
+        #java -version |& tee -a "$LOG_FILE"
+        #printf -- 'OpenJDK 14 with HotSpot installed\n'
+
+        echo "Java provided by user: $JAVA_PROVIDED" >> "$LOG_FILE"
+    if [[ "$JAVA_PROVIDED" == "AdoptJDK8_openj9" ]]; then
+        # Install AdoptOpenJDK 8 (With OpenJ9)
+        cd "$CURDIR"
+        sudo mkdir -p /opt/adopt/java
+
+        curl -SL -o adoptjdk.tar.gz https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u265-b01_openj9-0.21.0/OpenJDK8U-jdk_s390x_linux_openj9_8u265b01_openj9-0.21.0.tar.gz
+        # Everytime new jdk is downloaded, Ensure that --strip valueis correct
+        sudo tar -zxvf adoptjdk.tar.gz -C /opt/adopt/java --strip-components 1
+
+        export JAVA_HOME=/opt/adopt/java
+        export JAVA11_HOME=/opt/adopt/java
+        
+        printf -- "Install AdoptOpenJDK 8 (With OpenJ9) success\n" >> "$LOG_FILE"
+    elif [[ "$JAVA_PROVIDED" == "AdoptJDK8_hotspot" ]]; then
+        # Install AdoptOpenJDK 8 (With OpenJ9)
+        cd "$CURDIR"
+        sudo mkdir -p /opt/adopt/java
+
+        curl -SL -o adoptjdk.tar.gz https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u265-b01/OpenJDK8U-jdk_s390x_linux_hotspot_8u265b01.tar.gz
+        # Everytime new jdk is downloaded, Ensure that --strip valueis correct
+        sudo tar -zxvf adoptjdk.tar.gz -C /opt/adopt/java --strip-components 1
+
+        export JAVA_HOME=/opt/adopt/java
+        export JAVA11_HOME=/opt/adopt/java
+        
+        printf -- "Install AdoptOpenJDK 8 (With Hotspot) success\n" >> "$LOG_FILE"
+    elif [[ "$JAVA_PROVIDED" == "AdoptJDK11_openj9" ]]; then
+        # Install AdoptOpenJDK 11 (With OpenJ9)
+        cd "$CURDIR"
+        sudo mkdir -p /opt/adopt/java
+
+        curl -SL -o adoptjdk.tar.gz https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.8%2B10_openj9-0.21.0/OpenJDK11U-jdk_s390x_linux_openj9_11.0.8_10_openj9-0.21.0.tar.gz
+        # Everytime new jdk is downloaded, Ensure that --strip valueis correct
+        sudo tar -zxvf adoptjdk.tar.gz -C /opt/adopt/java --strip-components 1
+
+        export JAVA_HOME=/opt/adopt/java
+        export JAVA11_HOME=/opt/adopt/java
+
+        printf -- " export JAVA_HOME=/opt/adopt/java\n"
+        printf -- "Install AdoptOpenJDK 11 (With OpenJ9) success\n" >> "$LOG_FILE"
+
+    elif [[ "$JAVA_PROVIDED" == "AdoptJDK11_hotspot" ]]; then
+        # Install AdoptOpenJDK 11 (With OpenJ9)
+        cd "$CURDIR"
+        sudo mkdir -p /opt/adopt/java
+
+        curl -SL -o adoptjdk.tar.gz https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.8%2B10_openj9-0.21.0/OpenJDK11U-jdk_s390x_linux_openj9_11.0.8_10_openj9-0.21.0.tar.gz
+        # Everytime new jdk is downloaded, Ensure that --strip valueis correct
+        sudo tar -zxvf adoptjdk.tar.gz -C /opt/adopt/java --strip-components 1
+
+        export JAVA_HOME=/opt/adopt/java
+        export JAVA11_HOME=/opt/adopt/java
+
+        printf -- " export JAVA_HOME=/opt/adopt/java\n"
+        printf -- "Install AdoptOpenJDK 11 (With OpenJ9) success\n" >> "$LOG_FILE"
+
+    elif [[ "$JAVA_PROVIDED" == "OpenJDK11" ]]; then 
+        if [[ "$VERSION_ID" == "18.04" ]]; then
+	        sudo DEBIAN_FRONTEND=noninteractive apt-get install -y openjdk-11-jdk
+                export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-s390x
+                export JAVA11_HOME=/usr/lib/jvm/java-11-openjdk-s390x
+	elif [[ "${ID}" == "rhel" ]]; then
+                sudo yum install -y java-11-openjdk java-11-openjdk-devel
+	        if [[ $DISTRO == "rhel-8.1" ]]; then				
+			# Inside rhel 8.1
+			echo "Inside RHEL 8.1"
+                	export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-11.0.6.10-0.el8_1.s390x
+                        export JAVA11_HOME=/usr/lib/jvm/java-11-openjdk-11.0.6.10-0.el8_1.s390x
+			export PATH=$JAVA_HOME/bin:$PATH
+			java -version
+		elif [[ $DISTRO == "rhel-8.2" ]]; then
+		        # Inside rhel 8.2      
+			echo "Inside RHEL 8.2"
+                    	export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-11.0.7.10-1.el8_1.s390x
+                        export JAVA11_HOME=/usr/lib/jvm/java-11-openjdk-11.0.7.10-1.el8_1.s390x
+			export PATH=$JAVA_HOME/bin:$PATH
+			java -version
+		else 
+			# Inside rhel 7.x
+			echo "Inside RHEL 7x"
+			export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-11.0.6.10-3.el7.s390x
+                        export JAVA11_HOME=/usr/lib/jvm/java-11-openjdk-11.0.6.10-3.el7.s390x
+			export PATH=$JAVA_HOME/bin:$PATH
+		        java -version
+		fi
+        elif [[ "${ID}" == "sles" ]]; then
+				sudo zypper install -y java-11-openjdk
+				export JAVA_HOME=/usr/lib64/jvm/java-11-openjdk-11
+                                export JAVA11_HOME=/usr/lib64/jvm/java-11-openjdk-11
+        else
+        	        echo "$jdk is not supported on $VERSION_ID "
+	                continue
+	fi
+    elif [[ "$JAVA_PROVIDED" == "OpenJDK8" ]]; then 
+                if [[ "$VERSION_ID" == "18.04" ]]; then
+		        sudo DEBIAN_FRONTEND=noninteractive apt-get install -y openjdk-8-jdk
+		        export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-s390x
+                        export JAVA11_HOME=/usr/lib/jvm/java-8-openjdk-s390x
+	        elif [[ "${ID}" == "rhel" ]]; then
+                        sudo yum install -y java-1.8.0-openjdk
+                	export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk/
+                        export JAVA8_HOME=/usr/lib/jvm/java-1.8.0-openjdk/
+			export PATH=$JAVA_HOME/bin:$PATH
+			java -version
+                elif [[ "${ID}" == "sles" ]]; then
+			sudo zypper install -y java-1_8_0-openjdk-devel
+			export JAVA_HOME=/usr/lib64/jvm/java-1.8.0-openjdk/
+                        export JAVA8_HOME=/usr/lib64/jvm/java-1.8.0-openjdk/
+                else
+        	        echo "$jdk is not supported on $VERSION_ID "
+	                continue
+	        fi
+    else
+        err "$JAVA_PROVIDED is not supported, Please use valid java from {AdoptJDK, IBM} only"
+        exit 1
+    fi
 
         java -version |& tee -a "$LOG_FILE"
-        printf -- 'OpenJDK 14 with HotSpot installed\n'
+        printf -- 'JDK installation successful\n'
 
-        cd "${CURDIR}"
-        # Setting environment variable needed for building
-        export JAVA_HOME=/usr/local/jdk-14.0.2+12
-        export JAVA14_HOME=/usr/local/jdk-14.0.2+12
-        # Adding symlink for PATH
-        sudo ln -sf /usr/local/jdk-14.0.2+12/bin/java /usr/bin/
-        printf -- 'Adding JAVA_HOME to .bashrc \n'
-
-        # Adding JAVA_HOME to ~/.bashrc
-        cd "${HOME}"
-        if [[ "$(grep -q JAVA_HOME .bashrc)" ]]; then
-                printf -- '\nChanging JAVA_HOME\n'
-                sed -n 's/^.*\bJAVA_HOME\b.*$/export JAVA_HOME=\/usr\/local\/jdk-14.0.2+12\//p' ~/.bashrc
-        else
-                echo "export JAVA_HOME=/usr/local/jdk-14.0.2+12/" >>.bashrc
-        fi
+        export PATH=$JAVA_HOME/bin:$PATH
+        printf -- 'export JAVA_HOME for "$ID"  \n'  >> "$LOG_FILE"
 
         cd "${CURDIR}"
         # Download and configure ElasticSearch
@@ -102,24 +209,24 @@ function configureAndInstall() {
 
         # Download required files and apply patch
         cd "${CURDIR}/elasticsearch"
-		wget $PATCH_URL/build.gradle -P ${CURDIR}/elasticsearch/distribution/archives/linux-s390x-tar
-		wget $PATCH_URL/build.gradle -P ${CURDIR}/elasticsearch/distribution/archives/oss-linux-s390x-tar
-		wget $PATCH_URL/build.gradle -P ${CURDIR}/elasticsearch/distribution/packages/s390x-deb
-		wget $PATCH_URL/build.gradle -P ${CURDIR}/elasticsearch/distribution/packages/s390x-oss-deb
-		wget $PATCH_URL/build.gradle -P ${CURDIR}/elasticsearch/distribution/packages/s390x-oss-rpm
-		wget $PATCH_URL/build.gradle -P ${CURDIR}/elasticsearch/distribution/packages/s390x-rpm
-		wget $PATCH_URL/build.gradle -P ${CURDIR}/elasticsearch/distribution/docker/docker-s390x-export
-		wget $PATCH_URL/build.gradle -P ${CURDIR}/elasticsearch/distribution/docker/oss-docker-s390x-export
-		wget $PATCH_URL/docker_build_context_build.gradle -P ${CURDIR}/elasticsearch/distribution/docker/docker-s390x-build-context
-		mv ${CURDIR}/elasticsearch/distribution/docker/docker-s390x-build-context/docker_build_context_build.gradle ${CURDIR}/elasticsearch/distribution/docker/docker-s390x-build-context/build.gradle
-		wget $PATCH_URL/oss_docker_build_context_build.gradle -P ${CURDIR}/elasticsearch/distribution/docker/oss-docker-s390x-build-context
-    	mv ${CURDIR}/elasticsearch/distribution/docker/oss-docker-s390x-build-context/oss_docker_build_context_build.gradle ${CURDIR}/elasticsearch/distribution/docker/oss-docker-s390x-build-context/build.gradle
+	wget $PATCH_URL/build.gradle -P ${CURDIR}/elasticsearch/distribution/archives/linux-s390x-tar
+	wget $PATCH_URL/build.gradle -P ${CURDIR}/elasticsearch/distribution/archives/oss-linux-s390x-tar
+	wget $PATCH_URL/build.gradle -P ${CURDIR}/elasticsearch/distribution/packages/s390x-deb
+	wget $PATCH_URL/build.gradle -P ${CURDIR}/elasticsearch/distribution/packages/s390x-oss-deb
+	wget $PATCH_URL/build.gradle -P ${CURDIR}/elasticsearch/distribution/packages/s390x-oss-rpm
+	wget $PATCH_URL/build.gradle -P ${CURDIR}/elasticsearch/distribution/packages/s390x-rpm
+	wget $PATCH_URL/build.gradle -P ${CURDIR}/elasticsearch/distribution/docker/docker-s390x-export
+	wget $PATCH_URL/build.gradle -P ${CURDIR}/elasticsearch/distribution/docker/oss-docker-s390x-export
+	wget $PATCH_URL/docker_build_context_build.gradle -P ${CURDIR}/elasticsearch/distribution/docker/docker-s390x-build-context
+	mv ${CURDIR}/elasticsearch/distribution/docker/docker-s390x-build-context/docker_build_context_build.gradle ${CURDIR}/elasticsearch/distribution/docker/docker-s390x-build-context/build.gradle
+	wget $PATCH_URL/oss_docker_build_context_build.gradle -P ${CURDIR}/elasticsearch/distribution/docker/oss-docker-s390x-build-context
+        mv ${CURDIR}/elasticsearch/distribution/docker/oss-docker-s390x-build-context/oss_docker_build_context_build.gradle ${CURDIR}/elasticsearch/distribution/docker/oss-docker-s390x-build-context/build.gradle
         wget -O - $PATCH_URL/diff.patch | git apply
         
         # Building Elasticsearch
         printf -- 'Building Elasticsearch \n'
         printf -- 'Build might take some time. Sit back and relax\n'
-		./gradlew :distribution:archives:oss-linux-s390x-tar:assemble --parallel
+	./gradlew :distribution:archives:oss-linux-s390x-tar:assemble --parallel
 
         # Verifying Elasticsearch installation
         if [[ $(grep -q "BUILD FAILED" "$LOG_FILE") ]]; then
@@ -130,13 +237,13 @@ function configureAndInstall() {
         
         printf -- 'Creating distributions as deb, rpm and docker: \n\n'
 		./gradlew :distribution:packages:s390x-oss-deb:assemble
-		printf -- 'Created deb distribution. \n\n'
-		./gradlew :distribution:packages:s390x-oss-rpm:assemble
-		printf -- 'Created rpm distribution. \n\n'
+	printf -- 'Created deb distribution. \n\n'
+	        ./gradlew :distribution:packages:s390x-oss-rpm:assemble
+	printf -- 'Created rpm distribution. \n\n'
 		./gradlew :distribution:docker:oss-docker-s390x-build-context:assemble
-		printf -- 'Created docker distribution. \n\n'
+	printf -- 'Created docker distribution. \n\n'
       
-		printf -- "\n\nInstalling Elasticsearch\n"
+	printf -- "\n\nInstalling Elasticsearch\n"
 
         cd "${CURDIR}/elasticsearch"
         sudo mkdir /usr/share/elasticsearch
@@ -162,25 +269,25 @@ function runTest() {
     # Setting environment variable needed for testing
 	#export LANG="en_US.UTF-8"
 	export JAVA_TOOL_OPTIONS="-Dfile.encoding=UTF8"
-	export JAVA_HOME=/usr/local/jdk-14.0.2+12
-	export JAVA14_HOME=/usr/local/jdk-14.0.2+12
-	export PATH=$JAVA_HOME/bin:$PATH
-	cd "${CURDIR}"
-        curl -SLO https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.8%2B10/OpenJDK11U-jdk_s390x_linux_hotspot_11.0.8_10.tar.gz
-        sudo tar -C /usr/local -xzf OpenJDK11U-jdk_s390x_linux_hotspot_11.0.8_10.tar.gz
-        printf -- 'OpenJDK 11 with HotSpot installed for testing\n'
+	#export JAVA_HOME=/usr/local/jdk-14.0.2+12
+	#export JAVA14_HOME=/usr/local/jdk-14.0.2+12
+	#export PATH=$JAVA_HOME/bin:$PATH
+	#cd "${CURDIR}"
+        #curl -SLO https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.8%2B10/OpenJDK11U-jdk_s390x_linux_hotspot_11.0.8_10.tar.gz
+        #sudo tar -C /usr/local -xzf OpenJDK11U-jdk_s390x_linux_hotspot_11.0.8_10.tar.gz
+        #printf -- 'OpenJDK 11 with HotSpot installed for testing\n'
 
-        export JAVA11_HOME=/usr/local/jdk-11.0.8+10
-        export RUNTIME_JAVA_HOME=/usr/local/jdk-11.0.8+10
+        #export JAVA11_HOME=/usr/local/jdk-11.0.8+10
+        export RUNTIME_JAVA_HOME=$JAVA_HOME
 
         cd "${CURDIR}/elasticsearch"
 	set +e
         # Run Elasticsearch test suite
         printf -- '\n Running Elasticsearch test suite.\n'
         ./gradlew --continue test -Dtests.haltonfailure=false -Dtests.jvm.argline="-Xss2m" |& tee -a ${CURDIR}/logs/test_results.log
-		printf -- '***********************************************************************************************************************************'
+	printf -- '***********************************************************************************************************************************'
         printf -- '\n Some X-Pack test cases will fail as X-Pack plugins are not supported on s390x, such as Machine Learning features.\n'
-		printf -- '\n Certain test cases may require an individual rerun to pass. There may be false negatives due to seccomp not supporting s390x properly.\n'
+	printf -- '\n Certain test cases may require an individual rerun to pass. There may be false negatives due to seccomp not supporting s390x properly.\n'
         printf -- '***********************************************************************************************************************************\n'
 	set -e
 }
@@ -233,7 +340,7 @@ function printHelp() {
         echo
 }
 
-while getopts "h?dyt" opt; do
+while getopts "h?dytj:" opt; do
         case "$opt" in
         h | \?)
                 printHelp
@@ -256,6 +363,9 @@ while getopts "h?dyt" opt; do
                         TESTS="true"
                 fi
                 ;;
+        j)
+            JAVA_PROVIDED="$OPTARG"
+            ;;
         esac
 done
 

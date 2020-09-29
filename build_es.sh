@@ -99,7 +99,7 @@ function configureAndInstall() {
         cd "$CURDIR"
         sudo mkdir -p /opt/adopt/java
 
-        curl -SL -o adoptjdk.tar.gz https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.8%2B10_openj9-0.21.0/OpenJDK11U-jdk_s390x_linux_openj9_11.0.8_10_openj9-0.21.0.tar.gz
+        curl -SL -o adoptjdk.tar.gz https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.8%2B10/OpenJDK11U-jdk_s390x_linux_hotspot_11.0.8_10.tar.gz
         # Everytime new jdk is downloaded, Ensure that --strip valueis correct
         sudo tar -zxvf adoptjdk.tar.gz -C /opt/adopt/java --strip-components 1
 
@@ -107,7 +107,7 @@ function configureAndInstall() {
         export JAVA11_HOME=/opt/adopt/java
 
         printf -- " export JAVA_HOME=/opt/adopt/java\n"
-        printf -- "Install AdoptOpenJDK 11 (With OpenJ9) success\n" >> "$LOG_FILE"
+        printf -- "Install AdoptOpenJDK 11 (With Hotspot) success\n" >> "$LOG_FILE"
 
     elif [[ "$JAVA_PROVIDED" == "OpenJDK11" ]]; then 
         if [[ "$VERSION_ID" == "18.04" ]]; then

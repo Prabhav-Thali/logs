@@ -117,31 +117,31 @@ function configureAndInstall() {
 	    elif [[ "${ID}" == "rhel" ]]; then
             sudo yum install -y java-11-openjdk java-11-openjdk-devel
 	        if [[ $DISTRO == "rhel-8.1" ]]; then				
-			    # Inside rhel 8.1
-			    echo "Inside RHEL 8.1"
-                export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-11.0.6.10-0.el8_1.s390x
-                export JAVA11_HOME=/usr/lib/jvm/java-11-openjdk-11.0.6.10-0.el8_1.s390x
-			    export PATH=$JAVA_HOME/bin:$PATH
-			    java -version
+			# Inside rhel 8.1
+			echo "Inside RHEL 8.1"
+                	export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-11.0.6.10-0.el8_1.s390x
+                	export JAVA11_HOME=/usr/lib/jvm/java-11-openjdk-11.0.6.10-0.el8_1.s390x
+			export PATH=$JAVA_HOME/bin:$PATH
+			java -version
 		    elif [[ $DISTRO == "rhel-8.2" ]]; then
 		        # Inside rhel 8.2      
-			    echo "Inside RHEL 8.2"
-                export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-11.0.7.10-1.el8_1.s390x
-                export JAVA11_HOME=/usr/lib/jvm/java-11-openjdk-11.0.7.10-1.el8_1.s390x
-			    export PATH=$JAVA_HOME/bin:$PATH
-			    java -version
-		    else 
-			    # Inside rhel 7.x
-			    echo "Inside RHEL 7x"
-			    export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-11.0.6.10-3.el7.s390x
-                export JAVA11_HOME=/usr/lib/jvm/java-11-openjdk-11.0.6.10-3.el7.s390x
-			    export PATH=$JAVA_HOME/bin:$PATH
-                java -version
+			echo "Inside RHEL 8.2"
+                	export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-11.0.7.10-1.el8_1.s390x
+                	export JAVA11_HOME=/usr/lib/jvm/java-11-openjdk-11.0.7.10-1.el8_1.s390x
+			export PATH=$JAVA_HOME/bin:$PATH
+			java -version
+		    else
+			# Inside rhel 7.x
+			echo "Inside RHEL 7x"
+			export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-11.0.6.10-3.el7.s390x
+                	export JAVA11_HOME=/usr/lib/jvm/java-11-openjdk-11.0.6.10-3.el7.s390x
+			export PATH=$JAVA_HOME/bin:$PATH
+                	java -version
 		    fi
         elif [[ "${ID}" == "sles" ]]; then
-			sudo zypper install -y java-11-openjdk
-			export JAVA_HOME=/usr/lib64/jvm/java-11-openjdk-11
-            export JAVA11_HOME=/usr/lib64/jvm/java-11-openjdk-11
+		sudo zypper install -y java-11-openjdk java-11-openjdk-devel
+		export JAVA_HOME=/usr/lib64/jvm/java-11-openjdk/
+            	export JAVA11_HOME=/usr/lib64/jvm/java-11-openjdk/
         fi
     else
         err "$JAVA_PROVIDED is not supported, Please use valid java from {AdoptJDK, IBM} only"
@@ -266,8 +266,8 @@ function runTest() {
                 	java -version
 		    fi
         elif [[ "${ID}" == "sles" ]]; then
-		export JAVA_HOME=/usr/lib64/jvm/java-11-openjdk-11
-            	export JAVA11_HOME=/usr/lib64/jvm/java-11-openjdk-11
+		export JAVA_HOME=/usr/lib64/jvm/java-11-openjdk/
+            	export JAVA11_HOME=/usr/lib64/jvm/java-11-openjdk/
         fi
     fi
 

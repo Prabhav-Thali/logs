@@ -3,7 +3,7 @@
 # LICENSE: Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
 #
 # Instructions:
-# Download build script: wget https://raw.githubusercontent.com/linux-on-ibm-z/scripts/master/Logstash/7.8.1/build_logstash.sh
+# Download build script: wget https://raw.githubusercontent.com/linux-on-ibm-z/scripts/master/Logstash/7.9.1/build_logstash.sh
 # Execute build script: bash build_logstash.sh    (provide -h for help)
 #
 
@@ -55,7 +55,7 @@ function prepare() {
 }
 
 function cleanup() {
-        sudo rm -rf "${CURDIR}/jffi-1.2.23.tar.gz" "${CURDIR}/logstash-oss-${PACKAGE_VERSION}.tar.gz"
+        rm -rf "${CURDIR}/adoptjdk.tar.gz"
         printf -- 'Cleaned up the artifacts\n' >>"${LOG_FILE}"
 }
 
@@ -65,7 +65,7 @@ function configureAndInstall() {
 
 	export PATH=$JAVA_HOME/bin:$PATH
 	
-  # Install jffi (RHEL/SLES)
+        # Install jffi (RHEL/SLES)
 	if [[ "$ID" == "rhel" || "$ID" == "sles" ]]; then
 		printf -- 'Installing jffi.\n'
 		cd "${CURDIR}"
@@ -76,9 +76,83 @@ function configureAndInstall() {
 		cd /usr/local/jffi
 		ant
 		export LD_LIBRARY_PATH=$CURDIR/jffi-jffi-1.2.23/build/jni/:$CURDIR/jffi-jffi-1.2.23/build/jni/libffi-s390x-linux/.libs:$LD_LIBRARY_PATH
-		export JAVA_HOME=/opt/adopt/java
 	fi
 	
+    if [[ "$JAVA_PROVIDED" == "AdoptJDK11_openj9" ]]; then
+        # Install AdoptOpenJDK 11 (With OpenJ9)
+        cd "$CURDIR"
+        sudo mkdir -p /opt/adopt/java
+
+        curl -SL -o adoptjdk.tar.gz https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.8%2B10_openj9-0.21.0/OpenJDK11U-jdk_s390x_linux_openj9_11.0.8_10_openj9-0.21.0.tar.gz
+        # Everytime new jdk is downloaded, Ensure that --strip valueis correct
+        sudo tar -zxvf adoptjdk.tar.gz -C /opt/adopt/java --strip-components 1
+
+        export JAVA_HOME=/opt/adopt/java
+        export JAVA11_HOME=/opt/adopt/java
+
+        printf -- " export JAVA_HOME=/opt/adopt/java\n"
+        printf -- "Install AdoptOpenJDK 11 (With OpenJ9) success\n" >> "$LOG_FILE"
+
+    elif [[ "$JAVA_PROVIDED" == "AdoptJDK11_hotspot" ]]; then
+        # Install AdoptOpenJDK 11 (With OpenJ9)
+        cd "$CURDIR"
+        sudo mkdir -p /opt/adopt/java
+
+        curl -SL -o adoptjdk.tar.gz https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.8%2B10/OpenJDK11U-jdk_s390x_linux_hotspot_11.0.8_10.tar.gz
+        # Everytime new jdk is downloaded, Ensure that --strip valueis correct
+        sudo tar -zxvf adoptjdk.tar.gz -C /opt/adopt/java --strip-components 1
+
+        export JAVA_HOME=/opt/adopt/java
+        export JAVA11_HOME=/opt/adopt/java
+
+        printf -- " export JAVA_HOME=/opt/adopt/java\n"
+        printf -- "Install AdoptOpenJDK 11 (With Hotspot) success\n" >> "$LOG_FILE"
+
+    elif [[ "$JAVA_PROVIDED" == "OpenJDK11" ]]; then 
+        if [[ "$VERSION_ID" == "18.04" ]]; then
+	        sudo DEBIAN_FRONTEND=noninteractive apt-get install -y openjdk-11-jdk
+                export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-s390x
+                export JAVA11_HOME=/usr/lib/jvm/java-11-openjdk-s390x
+	    elif [[ "${ID}" == "rhel" ]]; then
+            sudo yum install -y java-11-openjdk java-11-openjdk-devel
+	        if [[ $DISTRO == "rhel-8.1" ]]; then				
+			# Inside rhel 8.1
+			echo "Inside RHEL 8.1"
+                	export JAVA_HOME=/usr/lib/jvm/java-11-openjdk
+                	export JAVA11_HOME=/usr/lib/jvm/java-11-openjdk
+			export PATH=$JAVA_HOME/bin:$PATH
+			java -version
+		    elif [[ $DISTRO == "rhel-8.2" ]]; then
+		        # Inside rhel 8.2      
+			echo "Inside RHEL 8.2"
+                	export JAVA_HOME=/usr/lib/jvm/java-11-openjdk
+                	export JAVA11_HOME=/usr/lib/jvm/java-11-openjdk
+			export PATH=$JAVA_HOME/bin:$PATH
+			java -version
+		    else
+			# Inside rhel 7.x
+			echo "Inside RHEL 7x"
+			export JAVA_HOME=/usr/lib/jvm/java-11-openjdk
+                	export JAVA11_HOME=/usr/lib/jvm/java-11-openjdk
+			export PATH=$JAVA_HOME/bin:$PATH
+                	java -version
+		    fi
+        elif [[ "${ID}" == "sles" ]]; then
+		sudo zypper install -y java-11-openjdk java-11-openjdk-devel
+		export JAVA_HOME=/usr/lib64/jvm/java-11-openjdk/
+            	export JAVA11_HOME=/usr/lib64/jvm/java-11-openjdk/
+        fi
+    else
+        err "$JAVA_PROVIDED is not supported, Please use valid java from {AdoptJDK, IBM} only"
+        exit 1
+    fi
+
+        java -version |& tee -a "$LOG_FILE"
+        printf -- 'JDK installation successful\n'
+
+        export PATH=$JAVA_HOME/bin:$PATH
+        printf -- 'export JAVA_HOME for "$ID"  \n'  >> "$LOG_FILE"
+
         # Downloading and installing Logstash
         printf -- 'Downloading and installing Logstash.\n'
         cd "${CURDIR}"
@@ -138,7 +212,7 @@ function printHelp() {
         echo
 }
 
-while getopts "h?dy" opt; do
+while getopts "h?dyj:" opt; do
         case "$opt" in
         h | \?)
                 printHelp
@@ -150,6 +224,9 @@ while getopts "h?dy" opt; do
         y)
                 FORCE="true"
                 ;;
+        j)
+            JAVA_PROVIDED="$OPTARG"
+                ;;
         esac
 done
 
@@ -158,7 +235,7 @@ function gettingStarted() {
         printf -- "\n* Getting Started * \n"
         printf -- "Run Logstash: \n"
         printf -- "    export LD_LIBRARY_PATH=/usr/local/jffi/build/jni:\$LD_LIBRARY_PATH (For RHEL/SLES) \n"
-	      printf -- "    export LD_LIBRARY_PATH=/usr/lib/s390x-linux-gnu/jni:\$LD_LIBRARY_PATH (For Ubuntu) \n"
+	printf -- "    export LD_LIBRARY_PATH=/usr/lib/s390x-linux-gnu/jni:\$LD_LIBRARY_PATH (For Ubuntu) \n"
         printf -- "    logstash -V \n\n"
         printf -- "Visit https://www.elastic.co/support/matrix#matrix_jvm for more information.\n\n"
         printf -- '********************************************************************************************************\n'
@@ -174,22 +251,15 @@ case "$DISTRO" in
 "ubuntu-18.04" | "ubuntu-20.04")
         printf -- "Installing %s %s for %s \n" "$PACKAGE_NAME" "$PACKAGE_VERSION" "$DISTRO" |& tee -a "${LOG_FILE}"
         sudo apt-get update
-        sudo apt-get install -y ant gcc gzip openjdk-8-jdk make tar unzip wget zip libjffi-jni |& tee -a "${LOG_FILE}"
+        sudo apt-get install -y ant gcc gzip make tar unzip wget zip libjffi-jni |& tee -a "${LOG_FILE}"
         export LD_LIBRARY_PATH=/usr/lib/s390x-linux-gnu/jni/:$LD_LIBRARY_PATH
-	      source "/etc/os-release"	
-	      export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-s390x/
         configureAndInstall |& tee -a "${LOG_FILE}"
         ;;
 
 "rhel-7.6" | "rhel-7.7" | "rhel-7.8" | "rhel-8.1" | "rhel-8.2" )
         printf -- "Installing %s %s for %s \n" "$PACKAGE_NAME" "$PACKAGE_VERSION" "$DISTRO" |& tee -a "${LOG_FILE}"
-        sudo yum install -y ant gcc gzip make tar unzip wget zip java-1.8.0-openjdk |& tee -a "${LOG_FILE}"
-	cd "${CURDIR}"
-	sudo mkdir -p /opt/adopt/java
-	curl -SL -o adoptjdk.tar.gz  https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.8%2B10/OpenJDK11U-jdk_s390x_linux_hotspot_11.0.8_10.tar.gz
-	sudo tar -zxvf adoptjdk.tar.gz -C /opt/adopt/java --strip-components 1
-	rm -rf adoptjdk.tar.gz
-        export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk/
+        sudo yum install -y ant gcc gzip java-1.8.0-openjdk make tar unzip wget zip |& tee -a "${LOG_FILE}"
+	export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk/
         configureAndInstall |& tee -a "${LOG_FILE}"
         ;;
 

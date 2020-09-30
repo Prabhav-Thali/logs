@@ -119,22 +119,22 @@ function configureAndInstall() {
 	        if [[ $DISTRO == "rhel-8.1" ]]; then				
 			# Inside rhel 8.1
 			echo "Inside RHEL 8.1"
-                	export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-11.0.6.10-0.el8_1.s390x
-                	export JAVA11_HOME=/usr/lib/jvm/java-11-openjdk-11.0.6.10-0.el8_1.s390x
+                	export JAVA_HOME=/usr/lib/jvm/java-11-openjdk
+                	export JAVA11_HOME=/usr/lib/jvm/java-11-openjdk
 			export PATH=$JAVA_HOME/bin:$PATH
 			java -version
 		    elif [[ $DISTRO == "rhel-8.2" ]]; then
 		        # Inside rhel 8.2      
 			echo "Inside RHEL 8.2"
-                	export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-11.0.7.10-1.el8_1.s390x
-                	export JAVA11_HOME=/usr/lib/jvm/java-11-openjdk-11.0.7.10-1.el8_1.s390x
+                	export JAVA_HOME=/usr/lib/jvm/java-11-openjdk
+                	export JAVA11_HOME=/usr/lib/jvm/java-11-openjdk
 			export PATH=$JAVA_HOME/bin:$PATH
 			java -version
 		    else
 			# Inside rhel 7.x
 			echo "Inside RHEL 7x"
-			export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-11.0.6.10-3.el7.s390x
-                	export JAVA11_HOME=/usr/lib/jvm/java-11-openjdk-11.0.6.10-3.el7.s390x
+			export JAVA_HOME=/usr/lib/jvm/java-11-openjdk
+                	export JAVA11_HOME=/usr/lib/jvm/java-11-openjdk
 			export PATH=$JAVA_HOME/bin:$PATH
                 	java -version
 		    fi
@@ -161,11 +161,11 @@ function configureAndInstall() {
 
         # Download required files and apply patch
         cd "${CURDIR}/elasticsearch"
-	    wget $PATCH_URL/build.gradle -P ${CURDIR}/elasticsearch/distribution/archives/linux-s390x-tar
-	    wget $PATCH_URL/build.gradle -P ${CURDIR}/elasticsearch/distribution/archives/oss-linux-s390x-tar
-	    wget $PATCH_URL/build.gradle -P ${CURDIR}/elasticsearch/distribution/packages/s390x-deb
-	    wget $PATCH_URL/build.gradle -P ${CURDIR}/elasticsearch/distribution/packages/s390x-oss-deb
-	    wget $PATCH_URL/build.gradle -P ${CURDIR}/elasticsearch/distribution/packages/s390x-oss-rpm
+	wget $PATCH_URL/build.gradle -P ${CURDIR}/elasticsearch/distribution/archives/linux-s390x-tar
+	wget $PATCH_URL/build.gradle -P ${CURDIR}/elasticsearch/distribution/archives/oss-linux-s390x-tar
+	wget $PATCH_URL/build.gradle -P ${CURDIR}/elasticsearch/distribution/packages/s390x-deb
+	wget $PATCH_URL/build.gradle -P ${CURDIR}/elasticsearch/distribution/packages/s390x-oss-deb
+	wget $PATCH_URL/build.gradle -P ${CURDIR}/elasticsearch/distribution/packages/s390x-oss-rpm
 	wget $PATCH_URL/build.gradle -P ${CURDIR}/elasticsearch/distribution/packages/s390x-rpm
 	wget $PATCH_URL/build.gradle -P ${CURDIR}/elasticsearch/distribution/docker/docker-s390x-export
 	wget $PATCH_URL/build.gradle -P ${CURDIR}/elasticsearch/distribution/docker/oss-docker-s390x-export
@@ -200,7 +200,7 @@ function configureAndInstall() {
         cd "${CURDIR}/elasticsearch"
         sudo mkdir /usr/share/elasticsearch
         sudo tar -xzf distribution/archives/oss-linux-s390x-tar/build/distributions/elasticsearch-oss-"${PACKAGE_VERSION}"-SNAPSHOT-linux-s390x.tar.gz -C /usr/share/elasticsearch --strip-components 1
-		sudo ln -sf /usr/share/elasticsearch/bin/* /usr/bin/
+	sudo ln -sf /usr/share/elasticsearch/bin/* /usr/bin/
 
         if ([[ -z "$(cut -d: -f1 /etc/group | grep elastic)" ]]); then
                 printf -- '\nCreating group elastic.\n'
@@ -246,22 +246,22 @@ function runTest() {
 	        if [[ $DISTRO == "rhel-8.1" ]]; then				
 			# Inside rhel 8.1
 			echo "Inside RHEL 8.1"
-                	export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-11.0.6.10-0.el8_1.s390x
-                	export JAVA11_HOME=/usr/lib/jvm/java-11-openjdk-11.0.6.10-0.el8_1.s390x
+                	export JAVA_HOME=/usr/lib/jvm/java-11-openjdk
+                	export JAVA11_HOME=/usr/lib/jvm/java-11-openjdk
 			export PATH=$JAVA_HOME/bin:$PATH
 			java -version
 		    elif [[ $DISTRO == "rhel-8.2" ]]; then
 		        # Inside rhel 8.2      
 			echo "Inside RHEL 8.2"
-                	export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-11.0.7.10-1.el8_1.s390x
-			export JAVA11_HOME=/usr/lib/jvm/java-11-openjdk-11.0.7.10-1.el8_1.s390x
+                	export JAVA_HOME=/usr/lib/jvm/java-11-openjdk
+			export JAVA11_HOME=/usr/lib/jvm/java-11-openjdk
 			export PATH=$JAVA_HOME/bin:$PATH
 			java -version
 		    else 
 			# Inside rhel 7.x
 			echo "Inside RHEL 7x"
-			export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-11.0.6.10-3.el7.s390x
-                	export JAVA11_HOME=/usr/lib/jvm/java-11-openjdk-11.0.6.10-3.el7.s390x
+			export JAVA_HOME=/usr/lib/jvm/java-11-openjdk
+                	export JAVA11_HOME=/usr/lib/jvm/java-11-openjdk
 			export PATH=$JAVA_HOME/bin:$PATH
                 	java -version
 		    fi

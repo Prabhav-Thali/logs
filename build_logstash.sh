@@ -78,6 +78,7 @@ function configureAndInstall() {
 		export LD_LIBRARY_PATH=$CURDIR/jffi-jffi-1.2.23/build/jni/:$CURDIR/jffi-jffi-1.2.23/build/jni/libffi-s390x-linux/.libs:$LD_LIBRARY_PATH
 	fi
 	
+	echo "$JAVA_PROVIDED"
     if [[ "$JAVA_PROVIDED" == "AdoptJDK11_openj9" ]]; then
         # Install AdoptOpenJDK 11 (With OpenJ9)
         cd "$CURDIR"
@@ -143,7 +144,7 @@ function configureAndInstall() {
             	export JAVA11_HOME=/usr/lib64/jvm/java-11-openjdk/
         fi
     else
-        err "$JAVA_PROVIDED is not supported, Please use valid java from {AdoptJDK, IBM} only"
+        printf "$JAVA_PROVIDED is not supported, Please use valid java from {AdoptJDK, IBM} only"
         exit 1
     fi
 

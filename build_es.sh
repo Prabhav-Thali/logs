@@ -135,7 +135,7 @@ function configureAndInstall() {
 			printf -- "export JAVA_HOME=/usr/lib/jvm/java-11-openjdk\n" >> "$BUILD_ENV"
 		fi
         elif [[ "${ID}" == "sles" ]]; then
-			sudo zypper install -y java-11-openjdk
+			sudo zypper install -y java-11-openjdk java-11-openjdk-devel
 			export JAVA_HOME=/usr/lib64/jvm/java-11-openjdk
                         export JAVA11_HOME=/usr/lib64/jvm/java-11-openjdk
                         printf -- "export JAVA_HOME=/usr/lib64/jvm/java-11-openjdk\n" >> "$BUILD_ENV"

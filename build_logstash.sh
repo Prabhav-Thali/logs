@@ -15,6 +15,8 @@ FORCE=false
 CURDIR="$(pwd)"
 LOG_FILE="${CURDIR}/logs/${PACKAGE_NAME}-${PACKAGE_VERSION}-$(date +"%F-%T").log"
 NON_ROOT_USER="$(whoami)"
+JAVA_PROVIDED="OpenJDK11"
+BUILD_ENV="$HOME/setenv.sh"
 
 trap cleanup 1 2 ERR
 
@@ -35,6 +37,12 @@ function prepare() {
                 printf -- 'You can install the same from installing sudo from repository using apt, yum or zypper based on your distro. \n'
                 exit 1
         fi
+
+        if [[ "$JAVA_PROVIDED" != "AdoptJDK11_openj9" && "$JAVA_PROVIDED" != "AdoptJDK11_hotspot" && "$JAVA_PROVIDED" != "OpenJDK11" ]]; then
+                printf "$JAVA_PROVIDED is not supported, Please use valid java from {AdoptJDK11_openj9, AdoptJDK11_hotspot, OpenJDK11} only"
+                exit 1
+        fi
+
         if [[ "$FORCE" == "true" ]]; then
                 printf -- 'Force attribute provided hence continuing with install without confirmation message\n' |& tee -a "${LOG_FILE}"
         else
@@ -52,10 +60,14 @@ function prepare() {
                         esac
                 done
         fi
+
+        # zero out
+        true > "$BUILD_ENV"
 }
 
 function cleanup() {
         rm -rf "${CURDIR}/adoptjdk.tar.gz"
+        sudo rm -rf "${CURDIR}/jffi-1.2.23.tar.gz" "${CURDIR}/logstash-oss-${PACKAGE_VERSION}.tar.gz"
         printf -- 'Cleaned up the artifacts\n' >>"${LOG_FILE}"
 }
 
@@ -76,9 +88,9 @@ function configureAndInstall() {
 		cd /usr/local/jffi
 		ant
 		export LD_LIBRARY_PATH=$CURDIR/jffi-jffi-1.2.23/build/jni/:$CURDIR/jffi-jffi-1.2.23/build/jni/libffi-s390x-linux/.libs:$LD_LIBRARY_PATH
+                printf -- "export LD_LIBRARY_PATH=/usr/local/jffi/build/jni:\$LD_LIBRARY_PATH\n" >> "$BUILD_ENV"
 	fi
 	
-	echo "$JAVA_PROVIDED"
     if [[ "$JAVA_PROVIDED" == "AdoptJDK11_openj9" ]]; then
         # Install AdoptOpenJDK 11 (With OpenJ9)
         cd "$CURDIR"
@@ -91,11 +103,11 @@ function configureAndInstall() {
         export JAVA_HOME=/opt/adopt/java
         export JAVA11_HOME=/opt/adopt/java
 
-        printf -- " export JAVA_HOME=/opt/adopt/java\n"
-        printf -- "Install AdoptOpenJDK 11 (With OpenJ9) success\n" >> "$LOG_FILE"
+        printf -- "export JAVA_HOME=/opt/adopt/java\n" >> "$BUILD_ENV"
+        printf -- "Installation of AdoptOpenJDK 11 (With OpenJ9) is successful\n" >> "$LOG_FILE"
 
     elif [[ "$JAVA_PROVIDED" == "AdoptJDK11_hotspot" ]]; then
-        # Install AdoptOpenJDK 11 (With OpenJ9)
+        # Install AdoptOpenJDK 11 (With Hotspot)
         cd "$CURDIR"
         sudo mkdir -p /opt/adopt/java
 
@@ -106,53 +118,52 @@ function configureAndInstall() {
         export JAVA_HOME=/opt/adopt/java
         export JAVA11_HOME=/opt/adopt/java
 
-        printf -- " export JAVA_HOME=/opt/adopt/java\n"
-        printf -- "Install AdoptOpenJDK 11 (With Hotspot) success\n" >> "$LOG_FILE"
+        printf -- "export JAVA_HOME=/opt/adopt/java\n" >> "$BUILD_ENV"
+        printf -- "Installation of AdoptOpenJDK 11 (With Hotspot) is successful\n" >> "$LOG_FILE"
 
-    elif [[ "$JAVA_PROVIDED" == "OpenJDK11" ]]; then 
-        if [[ "$VERSION_ID" == "18.04" ]]; then
-	        sudo DEBIAN_FRONTEND=noninteractive apt-get install -y openjdk-11-jdk
-                export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-s390x
-                export JAVA11_HOME=/usr/lib/jvm/java-11-openjdk-s390x
-	    elif [[ "${ID}" == "rhel" ]]; then
-            sudo yum install -y java-11-openjdk java-11-openjdk-devel
-	        if [[ $DISTRO == "rhel-8.1" ]]; then				
-			# Inside rhel 8.1
-			echo "Inside RHEL 8.1"
-                	export JAVA_HOME=/usr/lib/jvm/java-11-openjdk
-                	export JAVA11_HOME=/usr/lib/jvm/java-11-openjdk
-			export PATH=$JAVA_HOME/bin:$PATH
-			java -version
-		    elif [[ $DISTRO == "rhel-8.2" ]]; then
-		        # Inside rhel 8.2      
-			echo "Inside RHEL 8.2"
-                	export JAVA_HOME=/usr/lib/jvm/java-11-openjdk
-                	export JAVA11_HOME=/usr/lib/jvm/java-11-openjdk
-			export PATH=$JAVA_HOME/bin:$PATH
-			java -version
-		    else
-			# Inside rhel 7.x
-			echo "Inside RHEL 7x"
-			export JAVA_HOME=/usr/lib/jvm/java-11-openjdk
-                	export JAVA11_HOME=/usr/lib/jvm/java-11-openjdk
-			export PATH=$JAVA_HOME/bin:$PATH
-                	java -version
-		    fi
-        elif [[ "${ID}" == "sles" ]]; then
-		sudo zypper install -y java-11-openjdk java-11-openjdk-devel
-		export JAVA_HOME=/usr/lib64/jvm/java-11-openjdk/
-            	export JAVA11_HOME=/usr/lib64/jvm/java-11-openjdk/
-        fi
+    elif [[ "$JAVA_PROVIDED" == "OpenJDK11" ]]; then
+                if [[ "$VERSION_ID" == "18.04" ]]; then
+                        sudo DEBIAN_FRONTEND=noninteractive apt-get install -y openjdk-11-jdk
+                        export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-s390x
+                        export JAVA11_HOME=/usr/lib/jvm/java-11-openjdk-s390x
+                        printf -- "export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-s390x\n" >> "$BUILD_ENV"
+                elif [[ "${ID}" == "rhel" ]]; then
+                        sudo yum install -y java-11-openjdk java-11-openjdk-devel
+                        if [[ $DISTRO == "rhel-8.1" ]]; then				
+                                # Inside rhel 8.1
+                                echo "Inside RHEL 8.1"
+                                export JAVA_HOME=/usr/lib/jvm/java-11-openjdk
+                                export JAVA11_HOME=/usr/lib/jvm/java-11-openjdk
+                                printf -- "export JAVA_HOME=/usr/lib/jvm/java-11-openjdk\n" >> "$BUILD_ENV"
+                        elif [[ $DISTRO == "rhel-8.2" ]]; then
+                                # Inside rhel 8.2      
+                                echo "Inside RHEL 8.2"
+                                export JAVA_HOME=/usr/lib/jvm/java-11-openjdk
+                                export JAVA11_HOME=/usr/lib/jvm/java-11-openjdk
+                                printf -- "export JAVA_HOME=/usr/lib/jvm/java-11-openjdk\n" >> "$BUILD_ENV"
+                        else
+                                # Inside rhel 7.x
+                                echo "Inside RHEL 7x"
+                                export JAVA_HOME=/usr/lib/jvm/java-11-openjdk
+                                export JAVA11_HOME=/usr/lib/jvm/java-11-openjdk
+                                printf -- "export JAVA_HOME=/usr/lib/jvm/java-11-openjdk\n" >> "$BUILD_ENV"
+                        fi
+                elif [[ "${ID}" == "sles" ]]; then
+                        sudo zypper install -y java-11-openjdk java-11-openjdk-devel
+                        export JAVA_HOME=/usr/lib64/jvm/java-11-openjdk
+                        export JAVA11_HOME=/usr/lib64/jvm/java-11-openjdk
+                        printf -- "export JAVA_HOME=/usr/lib64/jvm/java-11-openjdk\n" >> "$BUILD_ENV"
+                fi
+                printf -- "Installation of OpenJDK 11 is successful\n" >> "$LOG_FILE"
     else
-        printf "$JAVA_PROVIDED is not supported, Please use valid java from {AdoptJDK, IBM} only"
+        printf "$JAVA_PROVIDED is not supported, Please use valid java from {AdoptJDK11_openj9, AdoptJDK11_hotspot, OpenJDK11} only"
         exit 1
     fi
+        export PATH=$JAVA_HOME/bin:$PATH
+        printf -- 'export JAVA_HOME for "$ID"  \n'  >> "$LOG_FILE"
 
         java -version |& tee -a "$LOG_FILE"
         printf -- 'JDK installation successful\n'
-
-        export PATH=$JAVA_HOME/bin:$PATH
-        printf -- 'export JAVA_HOME for "$ID"  \n'  >> "$LOG_FILE"
 
         # Downloading and installing Logstash
         printf -- 'Downloading and installing Logstash.\n'
@@ -168,18 +179,6 @@ function configureAndInstall() {
         fi
 	
         sudo chown "$NON_ROOT_USER:elastic" -R /usr/share/logstash
-        
-	# Recreating jruby-complete jar file to include platform.conf
-        printf -- 'Applying fix for ffi java.lang.NullPointerException exception.\n' |& tee -a "${LOG_FILE}"
-        cd /usr/share/logstash/logstash-core/lib/jars
-        unzip jruby-complete-9.2.13.0.jar -d jruby-complete-9.2.13.0
-        cd jruby-complete-9.2.13.0/META-INF/jruby.home/lib/ruby/stdlib/ffi/platform/s390x-linux
-        cp -n types.conf platform.conf
-        cd /usr/share/logstash/logstash-core/lib/jars/jruby-complete-9.2.13.0
-        zip -r ../jruby-complete-9.2.13.0.jar *
-        cd  /usr/share/logstash/
-        rm -rf /usr/share/logstash/logstash-core/lib/jars/jruby-complete-9.2.13.0
-        printf -- 'Recreated jruby-complete jar file to include platform.conf\n' |& tee -a "${LOG_FILE}"
         printf -- 'Installed Logstash successfully \n'
         
 	# Cleanup
@@ -209,7 +208,8 @@ function logDetails() {
 function printHelp() {
         echo
         echo "Usage: "
-        echo "  install.sh  [-d debug] [-y install-without-confirmation]"
+        echo "  build_logstash.sh  [-d debug] [-y install-without-confirmation] [-j Java to use from {AdoptJDK11_openj9, AdoptJDK11_hotspot, OpenJDK11}]"
+        echo "       default: If no -j specified, openjdk-11 will be installed"
         echo
 }
 
@@ -226,7 +226,7 @@ while getopts "h?dyj:" opt; do
                 FORCE="true"
                 ;;
         j)
-            JAVA_PROVIDED="$OPTARG"
+                JAVA_PROVIDED="$OPTARG"
                 ;;
         esac
 done
@@ -234,9 +234,9 @@ done
 function gettingStarted() {
         printf -- '\n********************************************************************************************************\n'
         printf -- "\n* Getting Started * \n"
+        printf -- "Note: Environmental Variable needed have been added to $HOME/setenv.sh\n"
+        printf -- "Note: To set the Environmental Variable needed for Logstash, please run: source $HOME/setenv.sh \n"
         printf -- "Run Logstash: \n"
-        printf -- "    export LD_LIBRARY_PATH=/usr/local/jffi/build/jni:\$LD_LIBRARY_PATH (For RHEL/SLES) \n"
-	printf -- "    export LD_LIBRARY_PATH=/usr/lib/s390x-linux-gnu/jni:\$LD_LIBRARY_PATH (For Ubuntu) \n"
         printf -- "    logstash -V \n\n"
         printf -- "Visit https://www.elastic.co/support/matrix#matrix_jvm for more information.\n\n"
         printf -- '********************************************************************************************************\n'
@@ -254,6 +254,7 @@ case "$DISTRO" in
         sudo apt-get update
         sudo apt-get install -y ant gcc gzip make tar unzip wget zip libjffi-jni |& tee -a "${LOG_FILE}"
         export LD_LIBRARY_PATH=/usr/lib/s390x-linux-gnu/jni/:$LD_LIBRARY_PATH
+        printf -- "export LD_LIBRARY_PATH=/usr/lib/s390x-linux-gnu/jni/:\$LD_LIBRARY_PATH\n" >> "$BUILD_ENV"
         configureAndInstall |& tee -a "${LOG_FILE}"
         ;;
 

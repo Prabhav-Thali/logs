@@ -158,7 +158,7 @@ case "$DISTRO" in
     install_ruby
     configureAndInstall |& tee -a "$LOG_FILE"
     ;;
-"rhel-7.7" | "rhel-7.8" | rhel-7.9" | "rhel-8.1" | "rhel-8.2")
+"rhel-7.7" | "rhel-7.8" | "rhel-7.9" | "rhel-8.1" | "rhel-8.2")
     printf -- "Installing %s %s for %s \n" "$PACKAGE_NAME" "$PACKAGE_VERSION" "$DISTRO" |& tee -a "$LOG_FILE"
     printf -- "Installing dependencies... it may take some time.\n"
     sudo yum install -y  wget |& tee -a "$LOG_FILE"

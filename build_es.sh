@@ -1,11 +1,3 @@
-#!/bin/bash
-# ©  Copyright IBM Corporation 2020.
-# LICENSE: Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
-#
-# Instructions:
-# Download build script: wget https://raw.githubusercontent.com/linux-on-ibm-z/scripts/master/Elasticsearch/7.9.1/build_elasticsearch.sh
-# Execute build script: bash build_elasticsearch.sh    (provide -h for help)
-#
 set -e -o pipefail
 
 PACKAGE_NAME="elasticsearch"

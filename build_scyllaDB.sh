@@ -321,7 +321,7 @@ buildGcc()
   msg "Building GCC $ver"
   cd "$SOURCE_ROOT"
 
-  URL=https://ftpmirror.gnu.org/gcc/gcc-${ver}/gcc-${ver}.tar.gz
+  URL=https://ftp.gnu.org/gnu/gcc/gcc-${ver}/gcc-${ver}.tar.gz
   curl -sSL $URL | tar xzf - || error "GCC $ver"
 
   cd gcc-${ver}

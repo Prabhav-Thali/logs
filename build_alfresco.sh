@@ -55,7 +55,7 @@ function cleanup() {
     # Remove artifacts
     rm -rf "$SOURCE_ROOT/OpenJDK11U-jdk_s390x_linux_openj9_11.0.9_11_openj9-0.23.0.tar.gz"
     rm -rf "$SOURCE_ROOT/jffi"
-    rm -rf "$SOURCE_ROOT/jdk-11.0.7+10"
+    rm -rf "$SOURCE_ROOT/jdk-11.0.9+11"
     rm -rf "$SOURCE_ROOT/alfresco-docker-base-java"
     rm -rf "$SOURCE_ROOT/alfresco-docker-base-tomcat"
     rm -rf "$SOURCE_ROOT/apache-maven-3.6.3-bin.tar.gz"
@@ -70,15 +70,15 @@ function configureAndInstall() {
     wget https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.9%2B11_openj9-0.23.0/OpenJDK11U-jdk_s390x_linux_openj9_11.0.9_11_openj9-0.23.0.tar.gz
     tar -xf OpenJDK11U-jdk_s390x_linux_openj9_11.0.9_11_openj9-0.23.0.tar.gz
     sudo mkdir -p /usr/lib/jvm
-    sudo cp -r jdk-11.0.7+10 /usr/lib/jvm/
+    sudo cp -r jdk-11.0.9+11 /usr/lib/jvm/
     #Only for RHEL and SLES
     if [[ "${ID}" != "ubuntu" ]]; then
         export PATH=/usr/sbin:$PATH  #Only for RHEL and SLES
     fi
-    sudo update-alternatives --install "/usr/bin/java" "java" "/usr/lib/jvm/jdk-11.0.7+10/bin/java" 0
-    sudo update-alternatives --install "/usr/bin/javac" "javac" "/usr/lib/jvm/jdk-11.0.7+10/bin/javac" 0
-    sudo update-alternatives --set java "/usr/lib/jvm/jdk-11.0.7+10/bin/java"
-    sudo update-alternatives --set javac "/usr/lib/jvm/jdk-11.0.7+10/bin/javac"
+    sudo update-alternatives --install "/usr/bin/java" "java" "/usr/lib/jvm/jdk-11.0.9+11/bin/java" 0
+    sudo update-alternatives --install "/usr/bin/javac" "javac" "/usr/lib/jvm/jdk-11.0.9+11/bin/javac" 0
+    sudo update-alternatives --set java "/usr/lib/jvm/jdk-11.0.9+11/bin/java"
+    sudo update-alternatives --set javac "/usr/lib/jvm/jdk-11.0.9+11/bin/javac"
     export JAVA_HOME="$(readlink -f /etc/alternatives/javac | sed 's:/bin/javac::')"
     printf -- "Java is installed successfully \n"
     
@@ -146,8 +146,8 @@ function configureAndInstall() {
     cp target/jffi-1.2.11-native.jar ~/.m2/repository/com/github/jnr/jffi/1.2.11
 
     #Revert to Adoptopenjdk 11
-    sudo update-alternatives --set java "/usr/lib/jvm/jdk-11.0.7+10/bin/java"
-    sudo update-alternatives --set javac "/usr/lib/jvm/jdk-11.0.7+10/bin/javac"
+    sudo update-alternatives --set java "/usr/lib/jvm/jdk-11.0.9+11/bin/java"
+    sudo update-alternatives --set javac "/usr/lib/jvm/jdk-11.0.9+11/bin/javac"
     export JAVA_HOME="$(readlink -f /etc/alternatives/javac | sed 's:/bin/javac::')"
 
     #Fix libc library for SLES 12.x

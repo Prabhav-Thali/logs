@@ -69,15 +69,12 @@ function configureAndInstall() {
 	printf -- 'Downloading apachehttpserver and supporting packages \n'
 	cd "$CURDIR"
 	git clone -b "$PACKAGE_VERSION" https://github.com/apache/httpd.git
-	cd "$CURDIR/httpd"
 
 	cd "$CURDIR/httpd/srclib"
 	git clone -b "$APR_VERSION" https://github.com/apache/apr.git
-	cd "$CURDIR/httpd/srclib/apr"
 
 	cd "$CURDIR/httpd/srclib"
 	git clone -b "$APR_UTIL_VERSION" https://github.com/apache/apr-util.git
-	cd "$CURDIR/httpd/srclib/apr-util"
 
 	#Building http server
 	printf -- 'Building http server \n'
@@ -154,11 +151,11 @@ case "$DISTRO" in
 	;;
 
 "rhel-8.2" | "rhel-8.3" | "rhel-8.4")
-  printf -- "Installing %s %s for %s \n" "$PACKAGE_NAME" "$PACKAGE_VERSION" "$DISTRO" |& tee -a "$LOG_FILE"
-  printf -- 'Installing the dependencies for HTTP server from repository \n' |& tee -a "$LOG_FILE"
-  sudo yum install -y git openssl openssl-devel python2 gcc libtool autoconf make pcre pcre-devel libxml2 libxml2-devel expat-devel diffutils file which wget tar |& tee -a "$LOG_FILE"
-  configureAndInstall |& tee -a "$LOG_FILE"
-  ;;
+  	printf -- "Installing %s %s for %s \n" "$PACKAGE_NAME" "$PACKAGE_VERSION" "$DISTRO" |& tee -a "$LOG_FILE"
+  	printf -- 'Installing the dependencies for HTTP server from repository \n' |& tee -a "$LOG_FILE"
+  	sudo yum install -y git openssl openssl-devel python2 gcc libtool autoconf make pcre pcre-devel libxml2 libxml2-devel expat-devel diffutils file which wget tar |& tee -a "$LOG_FILE"
+  	configureAndInstall |& tee -a "$LOG_FILE"
+  	;;
 
 "sles-12.5")
 	printf -- "Installing %s %s for %s \n" "$PACKAGE_NAME" "$PACKAGE_VERSION" "$DISTRO" |& tee -a "$LOG_FILE"

@@ -149,7 +149,7 @@ case "$DISTRO" in
 "rhel-7.8" | "rhel-7.9")
 	printf -- "Installing %s %s for %s \n" "$PACKAGE_NAME" "$PACKAGE_VERSION" "$DISTRO" |& tee -a "$LOG_FILE"
 	printf -- 'Installing the dependencies for HTTP server from repository \n' |& tee -a "$LOG_FILE"
-	sudo yum install -y git openssl openssl-devel python gcc libtool autoconf make pcre pcre-devel libxml2 libxml2-devel expat-devel which wget tar |& tee -a "$LOG_FILE"
+	sudo yum install -y git openssl openssl-devel python gcc libtool autoconf make pcre pcre-devel libxml2 libxml2-devel expat-devel file which wget tar |& tee -a "$LOG_FILE"
 	configureAndInstall |& tee -a "$LOG_FILE"
 	;;
 

@@ -3,14 +3,14 @@
 # LICENSE: Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
 #
 # Instructions:
-# Download build script: wget https://raw.githubusercontent.com/linux-on-ibm-z/scripts/master/netty-tcnative/2.0.39/build_netty.sh
+# Download build script: wget https://raw.githubusercontent.com/linux-on-ibm-z/scripts/master/netty-tcnative/2.0.40/build_netty.sh
 # Execute build script: bash build_netty.sh    (provide -h for help)
 #
 
 set -e  -o pipefail
 
 PACKAGE_NAME="netty-tcnative"
-PACKAGE_VERSION="2.0.39"
+PACKAGE_VERSION="2.0.40"
 MAVEN_VERSION="3.6.3"
 SOURCE_ROOT="$(pwd)"
 USER="$(whoami)"
@@ -64,9 +64,9 @@ function prepare() {
 function cleanup() {
     # Remove artifacts
 	cd $SOURCE_ROOT
-	rm -rf  apache-maven-3.6.3-bin.tar.gz go1.13.1.linux-s390x.tar.gz cmake-3.7.2.tar.gz
-	rm -rf  OpenJDK11U-jdk_s390x_linux_openj9_11.0.10_9_openj9-0.24.0.tar.gz
-	rm -rf  OpenJDK11U-jdk_s390x_linux_hotspot_11.0.10_9.tar.gz
+	rm -rf  apache-maven-3.6.3-bin.tar.gz go1.16.3.linux-s390x.tar.gz cmake-3.7.2.tar.gz
+	rm -rf  OpenJDK11U-jdk_s390x_linux_openj9_11.0.11_9_openj9-0.26.0.tar.gz
+	rm -rf  OpenJDK11U-jdk_s390x_linux_hotspot_11.0.11_9.tar.gz
     printf -- "Cleaned up the artifacts\n" >> "$LOG_FILE"
 
 }
@@ -80,18 +80,18 @@ function configureAndInstall() {
 		# Install AdoptOpenJDK 11 (With OpenJ9)
 		printf -- "\nInstalling AdoptOpenJDK 11 (With OpenJ9) . . . \n"
 		cd $SOURCE_ROOT
-		wget https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.10%2B9_openj9-0.24.0/OpenJDK11U-jdk_s390x_linux_openj9_11.0.10_9_openj9-0.24.0.tar.gz
-		tar -xf OpenJDK11U-jdk_s390x_linux_openj9_11.0.10_9_openj9-0.24.0.tar.gz
-		export JAVA_HOME=$SOURCE_ROOT/jdk-11.0.10+9
+		wget https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.11%2B9_openj9-0.26.0/OpenJDK11U-jdk_s390x_linux_openj9_11.0.11_9_openj9-0.26.0.tar.gz
+		tar -xf OpenJDK11U-jdk_s390x_linux_openj9_11.0.11_9_openj9-0.26.0.tar.gz
+		export JAVA_HOME=$SOURCE_ROOT/jdk-11.0.11+9
 		printf -- "Installation of AdoptOpenJDK 11 (With OpenJ9) is successful\n" >> "$LOG_FILE"
 
 	elif [[ "$JAVA_PROVIDED" == "AdoptJDK11_hotspot" ]]; then
 		# Install AdoptOpenJDK 11 (With Hotspot)
 		printf -- "\nInstalling AdoptOpenJDK 11 (With Hotspot) . . . \n"
 		cd $SOURCE_ROOT
-		wget https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.10%2B9/OpenJDK11U-jdk_s390x_linux_hotspot_11.0.10_9.tar.gz
-		tar -xf OpenJDK11U-jdk_s390x_linux_hotspot_11.0.10_9.tar.gz
-		export JAVA_HOME=$SOURCE_ROOT/jdk-11.0.10+9
+		wget https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.11%2B9/OpenJDK11U-jdk_s390x_linux_hotspot_11.0.11_9.tar.gz
+		tar -xf OpenJDK11U-jdk_s390x_linux_hotspot_11.0.11_9.tar.gz
+		export JAVA_HOME=$SOURCE_ROOT/jdk-11.0.11+9
 		printf -- "Installation of AdoptOpenJDK 11 (With Hotspot) is successful\n" >> "$LOG_FILE"
 
 	elif [[ "$JAVA_PROVIDED" == "OpenJDK11" ]]; then
@@ -140,8 +140,8 @@ function configureAndInstall() {
 	if [[ "$ID" == "sles" ]]  ;then
 		cd $SOURCE_ROOT
 		sudo rm -rf /usr/local/go /usr/bin/go
-		wget https://storage.googleapis.com/golang/go1.13.1.linux-s390x.tar.gz
-		sudo tar -C /usr/local -xzf go1.13.1.linux-s390x.tar.gz
+		wget https://storage.googleapis.com/golang/go1.16.3.linux-s390x.tar.gz
+		sudo tar -C /usr/local -xzf go1.16.3.linux-s390x.tar.gz
 		export PATH=/usr/local/go/bin:$PATH
 		export GOROOT=/usr/local/go
 		export GOPATH=/usr/local/go/bin
@@ -168,7 +168,8 @@ function configureAndInstall() {
 	# Apply patch
 	sed -i '62,62 s/chromium-stable/patch-s390x-Jan2021/g' pom.xml
 	sed -i '66,66 s/1607f54fed72c6589d560254626909a64124f091/d83fd4af80af244ac623b99d8152c2e53287b9ad/g' pom.xml
-	sed -i '85,85 s/boringssl.googlesource.com/github.com\/linux-on-ibm-z/g'  boringssl-static/pom.xml
+	sed -i '54,54 s/boringssl.googlesource.com/github.com\/linux-on-ibm-z/g' boringssl-static/pom.xml
+	sed -i '55,55 s/chromium-stable/patch-s390x-Jan2021/g' boringssl-static/pom.xml
 	./mvnw clean install
 
 	#Cleanup
@@ -248,7 +249,7 @@ case "$DISTRO" in
 	source /opt/rh/devtoolset-7/enable
 	configureAndInstall |& tee -a "${LOG_FILE}"
 	;;
-"rhel-8.3" | "rhel-8.2" | "rhel-8.1")
+"rhel-8.4" | "rhel-8.3" | "rhel-8.2")
 	printf -- "Installing %s %s for %s \n" "$PACKAGE_NAME" "$PACKAGE_VERSION" "$DISTRO" |& tee -a "$LOG_FILE"
 	printf -- "Installing dependencies... it may take some time.\n"
 	sudo yum install -y ninja-build cmake perl gcc gcc-c++ libarchive  openssl-devel apr-devel autoconf automake libtool make tar git wget maven golang |& tee -a "${LOG_FILE}"
@@ -263,7 +264,7 @@ case "$DISTRO" in
 	sudo ln -sf /usr/bin/gcc /usr/bin/cc
 	configureAndInstall |& tee -a "${LOG_FILE}"
 	;;
-"sles-15.2")
+"sles-15.2"|"sles-15.3")
 	printf -- "Installing %s %s for %s \n" "$PACKAGE_NAME" "$PACKAGE_VERSION" "$DISTRO" |& tee -a "$LOG_FILE"
 	printf -- "Installing dependencies... it may take some time.\n"
 	sudo zypper install -y awk ninja cmake perl libopenssl-devel apr-devel autoconf automake libtool make tar git wget gcc gcc-c++ gzip |& tee -a "${LOG_FILE}"
@@ -276,4 +277,3 @@ case "$DISTRO" in
 esac
 
 gettingStarted |& tee -a "${LOG_FILE}"
-

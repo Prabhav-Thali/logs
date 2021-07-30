@@ -1,0 +1,61 @@
+diff --git a/Makefile b/Makefile
+index 8a449ede8..9a427830b 100644
+--- a/Makefile
++++ b/Makefile
+@@ -51,7 +51,7 @@ endif
+ 
+ REGISTRY ?= gcr.io/k8s-staging-ingress-nginx
+ 
+-BASE_IMAGE ?= k8s.gcr.io/ingress-nginx/nginx:v20210530-g6aab4c291@sha256:a7356029dd0c26cc3466bf7a27daec0f4df73aa14ca6c8b871a767022a812c0b
++BASE_IMAGE ?= gcr.io/k8s-staging-ingress-nginx/nginx:v0.48.1
+ 
+ GOARCH=$(ARCH)
+ 
+diff --git a/deploy/static/provider/baremetal/deploy.yaml b/deploy/static/provider/baremetal/deploy.yaml
+index 01dbd0376..159931854 100644
+--- a/deploy/static/provider/baremetal/deploy.yaml
++++ b/deploy/static/provider/baremetal/deploy.yaml
+@@ -320,7 +320,7 @@ spec:
+       dnsPolicy: ClusterFirst
+       containers:
+         - name: controller
+-          image: k8s.gcr.io/ingress-nginx/controller:v0.48.1@sha256:e9fb216ace49dfa4a5983b183067e97496e7a8b307d2093f4278cd550c303899
++          image: gcr.io/k8s-staging-ingress-nginx/controller:v0.48.1
+           imagePullPolicy: IfNotPresent
+           lifecycle:
+             preStop:
+diff --git a/hack/init-buildx.sh b/hack/init-buildx.sh
+index a24b64956..50a197ce8 100755
+--- a/hack/init-buildx.sh
++++ b/hack/init-buildx.sh
+@@ -34,9 +34,6 @@ fi
+ current_builder="$(docker buildx inspect)"
+ # linux/amd64, linux/arm64, linux/riscv64, linux/ppc64le, linux/s390x, linux/386, linux/arm/v7, linux/arm/v6
+ if ! grep -q "^Driver: docker$"  <<<"${current_builder}" && \
+-     grep -q "linux/amd64" <<<"${current_builder}" && \
+-     grep -q "linux/arm"   <<<"${current_builder}" && \
+-     grep -q "linux/arm64" <<<"${current_builder}" && \
+      grep -q "linux/s390x" <<<"${current_builder}"; then
+   exit 0
+ fi
+diff --git a/images/nginx/Makefile b/images/nginx/Makefile
+index 11ffd2f06..76a3d1d36 100644
+--- a/images/nginx/Makefile
++++ b/images/nginx/Makefile
+@@ -30,7 +30,7 @@ IMAGE = $(REGISTRY)/nginx
+ export DOCKER_CLI_EXPERIMENTAL=enabled
+ 
+ # build with buildx
+-PLATFORMS?=linux/amd64,linux/arm,linux/arm64,linux/s390x
++PLATFORMS?=linux/s390x
+ OUTPUT=
+ PROGRESS=plain
+ build: ensure-buildx
+@@ -38,6 +38,7 @@ build: ensure-buildx
+ 		--platform=${PLATFORMS} $(OUTPUT) \
+ 		--progress=$(PROGRESS) \
+ 		--pull \
++		--load \
+ 		--tag $(IMAGE):$(TAG) rootfs
+ 
+ # push the cross built image

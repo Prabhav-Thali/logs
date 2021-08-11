@@ -48,7 +48,7 @@ index 11ffd2f06..91e0aac24 100644
 -build: ensure-buildx
 -	docker buildx build \
 -		--platform=${PLATFORMS} $(OUTPUT) \
-+build: 
++build:
 +	docker build \
  		--progress=$(PROGRESS) \
  		--pull \

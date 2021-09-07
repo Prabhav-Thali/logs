@@ -1,16 +1,16 @@
 #!/bin/bash
-# ©  Copyright IBM Corporation 2020.
+# ©  Copyright IBM Corporation 2021.
 # LICENSE: Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
 #
 # Instructions:
-# Download build script: wget https://raw.githubusercontent.com/linux-on-ibm-z/scripts/master/Logstash/7.9.1/build_logstash.sh
+# Download build script: wget https://raw.githubusercontent.com/linux-on-ibm-z/scripts/master/Logstash/7.14.0/build_logstash.sh
 # Execute build script: bash build_logstash.sh    (provide -h for help)
 #
 
 set -e -o pipefail
 
 PACKAGE_NAME="logstash"
-PACKAGE_VERSION="7.9.1"
+PACKAGE_VERSION="7.14.0"
 FORCE=false
 CURDIR="$(pwd)"
 LOG_FILE="${CURDIR}/logs/${PACKAGE_NAME}-${PACKAGE_VERSION}-$(date +"%F-%T").log"
@@ -34,7 +34,7 @@ function prepare() {
                 printf -- 'Sudo : Yes\n'
         else
                 printf -- 'Sudo : No \n'
-                printf -- 'You can install the same from installing sudo from repository using apt, yum or zypper based on your distro. \n'
+                printf -- 'Install sudo from repository using apt, yum or zypper based on your distro. \n'
                 exit 1
         fi
 
@@ -66,8 +66,7 @@ function prepare() {
 }
 
 function cleanup() {
-        rm -rf "${CURDIR}/adoptjdk.tar.gz"
-        sudo rm -rf "${CURDIR}/jffi-1.2.23.tar.gz" "${CURDIR}/logstash-oss-${PACKAGE_VERSION}.tar.gz"
+        sudo rm -rf "${CURDIR}/jffi-1.2.23.tar.gz" "${CURDIR}/logstash-oss-${PACKAGE_VERSION}.tar.gz" "${CURDIR}/adoptjdk.tar.gz"
         printf -- 'Cleaned up the artifacts\n' >>"${LOG_FILE}"
 }
 
@@ -91,86 +90,65 @@ function configureAndInstall() {
                 printf -- "export LD_LIBRARY_PATH=/usr/local/jffi/build/jni:\$LD_LIBRARY_PATH\n" >> "$BUILD_ENV"
 	fi
 	
-    if [[ "$JAVA_PROVIDED" == "AdoptJDK11_openj9" ]]; then
-        # Install AdoptOpenJDK 11 (With OpenJ9)
-        cd "$CURDIR"
-        sudo mkdir -p /opt/adopt/java
+        if [[ "$JAVA_PROVIDED" == "AdoptJDK11_openj9" ]]; then
+                # Install AdoptOpenJDK 11 (With OpenJ9)
+                cd "$CURDIR"
+                sudo mkdir -p /opt/adopt/java
 
-        curl -SL -o adoptjdk.tar.gz https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.8%2B10_openj9-0.21.0/OpenJDK11U-jdk_s390x_linux_openj9_11.0.8_10_openj9-0.21.0.tar.gz
-        # Everytime new jdk is downloaded, Ensure that --strip valueis correct
-        sudo tar -zxvf adoptjdk.tar.gz -C /opt/adopt/java --strip-components 1
+                curl -SL -o adoptjdk.tar.gz https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.11%2B9_openj9-0.26.0/OpenJDK11U-jdk_s390x_linux_openj9_11.0.11_9_openj9-0.26.0.tar.gz
+                # Everytime new jdk is downloaded, Ensure that --strip valueis correct
+                sudo tar -zxvf adoptjdk.tar.gz -C /opt/adopt/java --strip-components 1
 
-        export JAVA_HOME=/opt/adopt/java
-        export JAVA11_HOME=/opt/adopt/java
+                export JAVA_HOME=/opt/adopt/java
 
-        printf -- "export JAVA_HOME=/opt/adopt/java\n" >> "$BUILD_ENV"
-        printf -- "Installation of AdoptOpenJDK 11 (With OpenJ9) is successful\n" >> "$LOG_FILE"
+                printf -- "export JAVA_HOME=/opt/adopt/java\n" >> "$BUILD_ENV"
+                printf -- "Installation of AdoptOpenJDK 11 (With OpenJ9) is successful\n" >> "$LOG_FILE"
 
-    elif [[ "$JAVA_PROVIDED" == "AdoptJDK11_hotspot" ]]; then
-        # Install AdoptOpenJDK 11 (With Hotspot)
-        cd "$CURDIR"
-        sudo mkdir -p /opt/adopt/java
+        elif [[ "$JAVA_PROVIDED" == "AdoptJDK11_hotspot" ]]; then
+                # Install AdoptOpenJDK 11 (With Hotspot)
+                cd "$CURDIR"
+                sudo mkdir -p /opt/adopt/java
 
-        curl -SL -o adoptjdk.tar.gz https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.8%2B10/OpenJDK11U-jdk_s390x_linux_hotspot_11.0.8_10.tar.gz
-        # Everytime new jdk is downloaded, Ensure that --strip valueis correct
-        sudo tar -zxvf adoptjdk.tar.gz -C /opt/adopt/java --strip-components 1
+                curl -SL -o adoptjdk.tar.gz https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.11%2B9/OpenJDK11U-jdk_s390x_linux_hotspot_11.0.11_9.tar.gz
+                # Everytime new jdk is downloaded, Ensure that --strip valueis correct
+                sudo tar -zxvf adoptjdk.tar.gz -C /opt/adopt/java --strip-components 1
 
-        export JAVA_HOME=/opt/adopt/java
-        export JAVA11_HOME=/opt/adopt/java
+                export JAVA_HOME=/opt/adopt/java
 
-        printf -- "export JAVA_HOME=/opt/adopt/java\n" >> "$BUILD_ENV"
-        printf -- "Installation of AdoptOpenJDK 11 (With Hotspot) is successful\n" >> "$LOG_FILE"
+                printf -- "export JAVA_HOME=/opt/adopt/java\n" >> "$BUILD_ENV"
+                printf -- "Installation of AdoptOpenJDK 11 (With Hotspot) is successful\n" >> "$LOG_FILE"
 
-    elif [[ "$JAVA_PROVIDED" == "OpenJDK11" ]]; then
-                if [[ "$VERSION_ID" == "18.04" ]]; then
+        elif [[ "$JAVA_PROVIDED" == "OpenJDK11" ]]; then
+                if [[ "${ID}" == "ubuntu" ]]; then
                         sudo DEBIAN_FRONTEND=noninteractive apt-get install -y openjdk-11-jdk
                         export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-s390x
-                        export JAVA11_HOME=/usr/lib/jvm/java-11-openjdk-s390x
                         printf -- "export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-s390x\n" >> "$BUILD_ENV"
                 elif [[ "${ID}" == "rhel" ]]; then
                         sudo yum install -y java-11-openjdk java-11-openjdk-devel
-                        if [[ $DISTRO == "rhel-8.1" ]]; then				
-                                # Inside rhel 8.1
-                                echo "Inside RHEL 8.1"
-                                export JAVA_HOME=/usr/lib/jvm/java-11-openjdk
-                                export JAVA11_HOME=/usr/lib/jvm/java-11-openjdk
-                                printf -- "export JAVA_HOME=/usr/lib/jvm/java-11-openjdk\n" >> "$BUILD_ENV"
-                        elif [[ $DISTRO == "rhel-8.2" ]]; then
-                                # Inside rhel 8.2      
-                                echo "Inside RHEL 8.2"
-                                export JAVA_HOME=/usr/lib/jvm/java-11-openjdk
-                                export JAVA11_HOME=/usr/lib/jvm/java-11-openjdk
-                                printf -- "export JAVA_HOME=/usr/lib/jvm/java-11-openjdk\n" >> "$BUILD_ENV"
-                        else
-                                # Inside rhel 7.x
-                                echo "Inside RHEL 7x"
-                                export JAVA_HOME=/usr/lib/jvm/java-11-openjdk
-                                export JAVA11_HOME=/usr/lib/jvm/java-11-openjdk
-                                printf -- "export JAVA_HOME=/usr/lib/jvm/java-11-openjdk\n" >> "$BUILD_ENV"
-                        fi
+                     	# Inside RHEL
+                        echo "Inside RHEL"
+                        export JAVA_HOME=/usr/lib/jvm/java-11-openjdk
+                        printf -- "export JAVA_HOME=/usr/lib/jvm/java-11-openjdk\n" >> "$BUILD_ENV"                   
                 elif [[ "${ID}" == "sles" ]]; then
                         sudo zypper install -y java-11-openjdk java-11-openjdk-devel
                         export JAVA_HOME=/usr/lib64/jvm/java-11-openjdk
-                        export JAVA11_HOME=/usr/lib64/jvm/java-11-openjdk
                         printf -- "export JAVA_HOME=/usr/lib64/jvm/java-11-openjdk\n" >> "$BUILD_ENV"
                 fi
                 printf -- "Installation of OpenJDK 11 is successful\n" >> "$LOG_FILE"
-    else
-        printf "$JAVA_PROVIDED is not supported, Please use valid java from {AdoptJDK11_openj9, AdoptJDK11_hotspot, OpenJDK11} only"
-        exit 1
-    fi
+        else
+                printf "$JAVA_PROVIDED is not supported, Please use valid java from {AdoptJDK11_openj9, AdoptJDK11_hotspot, OpenJDK11} only"
+                exit 1
+        fi
         export PATH=$JAVA_HOME/bin:$PATH
-        printf -- 'export JAVA_HOME for "$ID"  \n'  >> "$LOG_FILE"
-
+        printf -- "export PATH=$JAVA_HOME/bin:$PATH\n" >> "$BUILD_ENV"
         java -version |& tee -a "$LOG_FILE"
-        printf -- 'JDK installation successful\n'
 
         # Downloading and installing Logstash
         printf -- 'Downloading and installing Logstash.\n'
         cd "${CURDIR}"
-        wget https://artifacts.elastic.co/downloads/logstash/logstash-"$PACKAGE_VERSION".tar.gz
+	wget https://artifacts.elastic.co/downloads/logstash/logstash-oss-"$PACKAGE_VERSION"-linux-aarch64.tar.gz
         sudo mkdir /usr/share/logstash
-        sudo tar -xzf logstash-"$PACKAGE_VERSION".tar.gz  -C /usr/share/logstash --strip-components 1
+        sudo tar -xzf logstash-oss-"$PACKAGE_VERSION"-linux-aarch64.tar.gz -C /usr/share/logstash --strip-components 1
         sudo ln -sf /usr/share/logstash/bin/* /usr/bin
         
 	if ([[ -z "$(cut -d: -f1 /etc/group | grep elastic)" ]]); then
@@ -179,7 +157,6 @@ function configureAndInstall() {
         fi
 	
         sudo chown "$NON_ROOT_USER:elastic" -R /usr/share/logstash
-        printf -- 'Installed Logstash successfully \n'
         
 	# Cleanup
         cleanup
@@ -208,8 +185,8 @@ function logDetails() {
 function printHelp() {
         echo
         echo "Usage: "
-        echo "  build_logstash.sh  [-d debug] [-y install-without-confirmation] [-j Java to use from {AdoptJDK11_openj9, AdoptJDK11_hotspot, OpenJDK11}]"
-        echo "       default: If no -j specified, openjdk-11 will be installed"
+        echo "  bash build_logstash.sh  [-d debug] [-y install-without-confirmation] [-j Java to use from {AdoptJDK11_openj9, AdoptJDK11_hotspot, OpenJDK11}]"
+        echo "  default: If no -j specified, openjdk-11 will be installed"
         echo
 }
 
@@ -234,8 +211,8 @@ done
 function gettingStarted() {
         printf -- '\n********************************************************************************************************\n'
         printf -- "\n* Getting Started * \n"
-        printf -- "Note: Environmental Variable needed have been added to $HOME/setenv.sh\n"
-        printf -- "Note: To set the Environmental Variable needed for Logstash, please run: source $HOME/setenv.sh \n"
+        printf -- "Note: Environmental Variables needed have been added to $HOME/setenv.sh\n"
+        printf -- "Note: To set the Environmental Variables needed for Logstash, please run: source $HOME/setenv.sh \n"
         printf -- "Run Logstash: \n"
         printf -- "    logstash -V \n\n"
         printf -- "Visit https://www.elastic.co/support/matrix#matrix_jvm for more information.\n\n"
@@ -252,23 +229,23 @@ case "$DISTRO" in
 "ubuntu-18.04" | "ubuntu-20.04")
         printf -- "Installing %s %s for %s \n" "$PACKAGE_NAME" "$PACKAGE_VERSION" "$DISTRO" |& tee -a "${LOG_FILE}"
         sudo apt-get update
-        sudo apt-get install -y ant gcc gzip make tar unzip wget zip libjffi-jni |& tee -a "${LOG_FILE}"
+        sudo apt-get install -y make tar wget libjffi-jni gzip curl |& tee -a "${LOG_FILE}"
         export LD_LIBRARY_PATH=/usr/lib/s390x-linux-gnu/jni/:$LD_LIBRARY_PATH
         printf -- "export LD_LIBRARY_PATH=/usr/lib/s390x-linux-gnu/jni/:\$LD_LIBRARY_PATH\n" >> "$BUILD_ENV"
         configureAndInstall |& tee -a "${LOG_FILE}"
         ;;
 
-"rhel-7.6" | "rhel-7.7" | "rhel-7.8" | "rhel-8.1" | "rhel-8.2" )
+"rhel-7.8" | "rhel-7.9" | "rhel-8.2" | "rhel-8.3" | "rhel-8.4" )
         printf -- "Installing %s %s for %s \n" "$PACKAGE_NAME" "$PACKAGE_VERSION" "$DISTRO" |& tee -a "${LOG_FILE}"
-        sudo yum install -y ant gcc gzip java-1.8.0-openjdk make tar unzip wget zip |& tee -a "${LOG_FILE}"
-	export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk/
+        sudo yum install -y ant gcc java-1.8.0-openjdk-devel make tar wget |& tee -a "${LOG_FILE}"
+        export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk/
         configureAndInstall |& tee -a "${LOG_FILE}"
         ;;
 
 "sles-12.5")
         printf -- "Installing %s %s for %s \n" "$PACKAGE_NAME" "$PACKAGE_VERSION" "$DISTRO" |& tee -a "${LOG_FILE}"
-        sudo zypper install -y ant gawk gcc gzip java-1_8_0-openjdk-devel make tar unzip wget zip |& tee -a "${LOG_FILE}"
-	export JAVA_HOME=/usr/lib64/jvm/java-1.8.0-openjdk/
+        sudo zypper install -y ant gawk gcc java-1_8_0-openjdk-devel make tar wget |& tee -a "${LOG_FILE}"
+        export JAVA_HOME=/usr/lib64/jvm/java-1.8.0-openjdk/
         configureAndInstall |& tee -a "${LOG_FILE}"
         ;;
 

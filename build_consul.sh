@@ -3,13 +3,13 @@
 # LICENSE: Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
 #
 # Instructions:
-# Download build script: curl -sSLO https://raw.githubusercontent.com/linux-on-ibm-z/scripts/master/Consul/1.10.2/build_consul.sh
+# Download build script: curl -sSLO https://raw.githubusercontent.com/linux-on-ibm-z/scripts/master/Consul/1.10.3/build_consul.sh
 # Execute build script: bash build_consul.sh    (provide -h for help)
 
 set -e -o pipefail
 
 PACKAGE_NAME="consul"
-PACKAGE_VERSION="1.10.2"
+PACKAGE_VERSION="1.10.3"
 SOURCE_ROOT="$(pwd)"
 export GOPATH=$SOURCE_ROOT
 GO_PACKAGE_VERSION="1.16.5"

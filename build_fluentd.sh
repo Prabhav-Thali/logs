@@ -1,18 +1,18 @@
 #!/bin/bash
-# © Copyright IBM Corporation 2020.
+# © Copyright IBM Corporation 2021, 2022.
 # LICENSE: Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
 #
 # Instructions:
-# Download build script: wget https://raw.githubusercontent.com/linux-on-ibm-z/scripts/master/Fluentd/1.11.3/build_fluentd.sh
+# Download build script: wget https://raw.githubusercontent.com/linux-on-ibm-z/scripts/master/Fluentd/1.14.4/build_fluentd.sh
 # Execute build script: bash build_fluentd.sh    (provide -h for help)
 
 set -e -o pipefail
 
 PACKAGE_NAME="fluentd"
-PACKAGE_VERSION="1.11.4"
+PACKAGE_VERSION="1.14.4"
 CURDIR="$(pwd)"
 
-RUBY_INSTALL_URL="https://raw.githubusercontent.com/Prabhav-Thali/logs/master/build_ruby.sh"
+RUBY_INSTALL_URL="https://raw.githubusercontent.com/linux-on-ibm-z/scripts/master/Ruby/3.1.0/build_ruby.sh"
 
 FORCE="false"
 LOG_FILE="$CURDIR/logs/${PACKAGE_NAME}-${PACKAGE_VERSION}-$(date +"%F-%T").log"
@@ -33,7 +33,7 @@ function prepare() {
         printf -- 'Sudo : Yes\n' >>"$LOG_FILE"
     else
         printf -- 'Sudo : No \n' >>"$LOG_FILE"
-        printf -- 'You can install the same from installing sudo from repository using apt, yum or zypper based on your distro. \n'
+        printf -- 'Install sudo from repository using apt, yum or zypper based on your distro. \n'
         exit 1
     fi
 
@@ -66,7 +66,7 @@ function install_ruby() {
     printf -- "Installing ruby... \n" |& tee -a "$LOG_FILE"
     wget $RUBY_INSTALL_URL && bash build_ruby.sh -y
     printf -- "Installed Ruby successfully \n" |& tee -a "$LOG_FILE"
-    if [[ "${ID}" != "ubuntu" ]]; then
+    if [[ "${ID}" == "rhel" ]]; then
         export GEM_HOME=$HOME/.gem/ruby
         export PATH=$HOME/.gem/ruby/bin:$PATH
     fi
@@ -81,7 +81,15 @@ function configureAndInstall() {
         printf -- "Install gems for ubuntu\n"
         #Download fluentd
         sudo gem install ${PACKAGE_NAME} -v ${PACKAGE_VERSION}
-    else
+        
+    elif [[ "${ID}" == "sles" ]]; then
+        printf -- "Install gems for sles \n"
+        #Download fluentd
+        export PATH="$PATH:/usr/local/bin"
+        #Install gems
+        sudo env PATH=$PATH gem install ${PACKAGE_NAME} -v ${PACKAGE_VERSION}
+        
+    else 
         printf -- "Install gems \n"
         #Download fluentd
         export PATH="$PATH:/usr/local/bin"
@@ -137,6 +145,15 @@ done
 function gettingStarted() {
     printf -- '\n********************************************************************************************************\n'
     printf -- "\n*Getting Started * \n"
+
+    if [[ "${ID}" == "rhel" ]]; then
+    printf -- "\nSet GEM_HOME and PATH to start using fluentd.\n"
+    printf -- "\texport GEM_HOME=$HOME/.gem/ruby\n"
+    printf -- "\t"
+    printf -- 'export PATH=$HOME/.gem/ruby/bin:$PATH'
+    printf -- "\n\n"
+    fi
+
     printf -- "Installing fluentd Configuration file:\n"
     printf -- "fluentd -s conf \n\n"
     printf -- "Running fluentd: \n"
@@ -150,25 +167,25 @@ prepare #Check Prequisites
 DISTRO="$ID-$VERSION_ID"
 
 case "$DISTRO" in
-"ubuntu-18.04" | "ubuntu-20.04" | "ubuntu-20.10")
+"ubuntu-18.04" | "ubuntu-20.04" | "ubuntu-21.04" | "ubuntu-21.10")
     printf -- "Installing %s %s for %s \n" "$PACKAGE_NAME" "$PACKAGE_VERSION" "$DISTRO" |& tee -a "$LOG_FILE"
     printf -- "Installing dependencies... it may take some time.\n"
     sudo apt-get update
-    sudo apt-get install -y gcc make wget zlib1g-dev |& tee -a "$LOG_FILE"
+    sudo apt-get install -y wget zlib1g-dev |& tee -a "$LOG_FILE"
     install_ruby
     configureAndInstall |& tee -a "$LOG_FILE"
     ;;
-"rhel-7.7" | "rhel-7.8" | "rhel-7.9" | "rhel-8.1" | "rhel-8.2")
+"rhel-7.8" | "rhel-7.9" | "rhel-8.2" | "rhel-8.4" | "rhel-8.5")
     printf -- "Installing %s %s for %s \n" "$PACKAGE_NAME" "$PACKAGE_VERSION" "$DISTRO" |& tee -a "$LOG_FILE"
     printf -- "Installing dependencies... it may take some time.\n"
     sudo yum install -y  wget |& tee -a "$LOG_FILE"
     install_ruby
     configureAndInstall |& tee -a "$LOG_FILE"
     ;;
-"sles-12.5" | "sles-15.1" | "sles-15.2")
+"sles-12.5" | "sles-15.3")
     printf -- "Installing %s %s for %s \n" "$PACKAGE_NAME" "$PACKAGE_VERSION" "$DISTRO" |& tee -a "$LOG_FILE"
     printf -- "Installing dependencies... it may take some time.\n"
-    sudo zypper install -y wget |& tee -a "$LOG_FILE"
+    sudo zypper install -y wget gzip awk zlib-devel |& tee -a "$LOG_FILE"
     install_ruby
     configureAndInstall |& tee -a "$LOG_FILE"
     ;;

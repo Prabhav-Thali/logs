@@ -114,8 +114,8 @@ function runTests() {
   set +e
   if [[ "$TESTS" == "true" ]]; then
     printf -- 'Running test \n'
-    chmod g-w internal/lang/funcs/
-    chmod g-w internal/lang/funcs/testdata/
+    #chmod g-w internal/lang/funcs/
+    #chmod g-w internal/lang/funcs/testdata/
     go test ./...
     printf -- '**********************************************************************************************************\n'
     printf -- '\nIn case of unexpected test failures try running the test individually using command go test -v <package_name> -run <failed_test_name>\n'

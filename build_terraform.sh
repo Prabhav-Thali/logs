@@ -3,15 +3,15 @@
 # LICENSE: Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
 #
 # Instructions:
-# Download build script: wget https://raw.githubusercontent.com/linux-on-ibm-z/scripts/master/Terraform/1.1.6/build_terraform.sh
+# Download build script: wget https://raw.githubusercontent.com/linux-on-ibm-z/scripts/master/Terraform/1.1.7/build_terraform.sh
 # Execute build script: bash build_terraform.sh    (provide -h for help)
 #
  
 set -e -o pipefail
 
 PACKAGE_NAME="terraform"
-PACKAGE_VERSION="1.1.6"
-GO_VERSION="1.17.5"
+PACKAGE_VERSION="1.1.7"
+GO_VERSION="1.17.2"
 LOG_FILE="$(pwd)/logs/${PACKAGE_NAME}-${PACKAGE_VERSION}-$(date +"%F-%T").log"
 FORCE="false"
 TESTS="false"

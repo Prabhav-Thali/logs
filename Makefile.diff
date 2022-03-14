@@ -1,0 +1,22 @@
+diff --git a/Makefile b/Makefile
+index 18a3601..952765b 100644
+--- a/Makefile
++++ b/Makefile
+@@ -24,7 +24,7 @@ export DWO_BUNDLE_IMG ?= quay.io/devfile/devworkspace-operator-bundle:next
+ export DWO_INDEX_IMG ?= quay.io/devfile/devworkspace-operator-index:next
+ export PROJECT_CLONE_IMG ?= quay.io/devfile/project-clone:v0.9.0
+ export ROUTING_SUFFIX ?= 192.168.99.100.nip.io
+-export PULL_POLICY ?= Always
++export PULL_POLICY ?= IfNotPresent
+ export DEFAULT_ROUTING ?= basic
+ export KUBECONFIG ?= ${HOME}/.kube/config
+ export DEVWORKSPACE_API_VERSION ?= 03e023e7078b64884216d8e6dce8f0cf8b7e74d2
+@@ -180,7 +180,7 @@ docker: _print_vars docker-build docker-push
+ 
+ ### docker-build: Builds the controller image
+ docker-build:
+-	$(DOCKER) build . -t ${DWO_IMG} -f build/Dockerfile
++	$(DOCKER) build . -t ${DWO_IMG} --build-arg PULL_POLICY=${PULL_POLICY} -f build/Dockerfile
+ 
+ ### docker-push: Pushes the controller image
+ docker-push:

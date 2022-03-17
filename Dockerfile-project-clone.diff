@@ -1,0 +1,13 @@
+diff --git a/project-clone/Dockerfile b/project-clone/Dockerfile
+index 41d45dc..574581e 100644
+--- a/project-clone/Dockerfile
++++ b/project-clone/Dockerfile
+@@ -26,7 +26,7 @@ RUN go mod download
+ COPY . .
+ 
+ # compile workspace controller binaries
+-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build \
++RUN CGO_ENABLED=0 GOOS=linux GOARCH=s390x GO111MODULE=on go build \
+   -a -o _output/bin/project-clone \
+   -gcflags all=-trimpath=/ \
+   -asmflags all=-trimpath=/ \

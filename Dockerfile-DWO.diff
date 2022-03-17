@@ -1,0 +1,12 @@
+diff --git a/build/Dockerfile b/build/Dockerfile
+index 03e9c12..b4169af 100644
+--- a/build/Dockerfile
++++ b/build/Dockerfile
+@@ -12,6 +12,7 @@
+ # https://access.redhat.com/containers/?tab=tags#/registry.access.redhat.com/ubi8/go-toolset
+ FROM registry.access.redhat.com/ubi8/go-toolset:1.15.13-4 as builder
+ ENV GOPATH=/go/
++ENV PULL_POLICY=IfNotPresent
+ USER root
+ WORKDIR /devworkspace-operator
+ # Copy the Go Modules manifests

@@ -78,17 +78,13 @@ function configureAndInstall() {
   printf -- 'Configuration and Installation started \n'
   printf -- "Gopath is set to  %s \n" "$GOPATH"
 
-  # Install go
-  printf -- 'Installing Go...\n'
+  # Install Go
+  printf -- 'Installing go\n'
   cd ${GOPATH}
-  wget https://golang.org/dl/go${GO_VERSION}.linux-s390x.tar.gz
-  chmod ugo+r go${GO_VERSION}.linux-s390x.tar.gz
-  sudo tar -C /usr/local -xvzf go${GO_VERSION}.linux-s390x.tar.gz
-  export PATH=/usr/local/go/bin:$PATH
-  if [[ "${ID}" == "rhel" ]] || [[ "${ID}" == "sles" ]]; then
-    sudo ln -sf /usr/bin/gcc /usr/bin/s390x-linux-gnu-gcc
-  fi
+  wget https://raw.githubusercontent.com/linux-on-ibm-z/scripts/master/Go/1.17.7/build_go.sh
+  bash build_go.sh -y -v ${GO_VERSION}
   go version
+  printf -- "Install Go success\n"
 
   #Download and install terraform
   export PATH=$GOPATH/bin:$PATH

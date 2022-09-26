@@ -3,9 +3,9 @@ index 09f655a7aec..9c96032da4a 100644
 --- a/build-tools-internal/src/main/java/org/elasticsearch/gradle/internal/Jdk.java
 +++ b/build-tools-internal/src/main/java/org/elasticsearch/gradle/internal/Jdk.java
 @@ -22,7 +22,7 @@ import java.util.regex.Pattern;
-​
+
  public class Jdk implements Buildable, Iterable<File> {
-​
+
 -    private static final List<String> ALLOWED_ARCHITECTURES = List.of("aarch64", "x64");
 +    private static final List<String> ALLOWED_ARCHITECTURES = List.of("aarch64", "s390x", "x64");
      private static final List<String> ALLOWED_VENDORS = List.of("adoptium", "openjdk", "zulu");
@@ -18,12 +18,12 @@ index c95ac4ccb8b..f557891a01f 100644
 @@ -1,8 +1,8 @@
  elasticsearch     = 8.4.2
  lucene            = 9.3.0
-​
+
 -bundled_jdk_vendor = openjdk
 -bundled_jdk = 18.0.2.1+1@db379da656dc47308e138f21b33976fa
 +bundled_jdk_vendor = adoptium
 +bundled_jdk = 18.0.2.1+1
-​
+
  # optional dependencies
  spatial4j         = 0.7
 diff --git a/build-tools/src/main/java/org/elasticsearch/gradle/Architecture.java b/build-tools/src/main/java/org/elasticsearch/gradle/Architecture.java
@@ -32,12 +32,12 @@ index 34874b62d94..c6d70c7f988 100644
 +++ b/build-tools/src/main/java/org/elasticsearch/gradle/Architecture.java
 @@ -11,7 +11,8 @@ package org.elasticsearch.gradle;
  public enum Architecture {
-​
+
      X64("x86_64", "linux/amd64"),
 -    AARCH64("aarch64", "linux/arm64");
 +    AARCH64("aarch64", "linux/arm64"),
 +    S390X("s390x", "linux/s390x");
-​
+
      public final String classifier;
      public final String dockerPlatform;
 @@ -26,6 +27,7 @@ public enum Architecture {
@@ -55,7 +55,7 @@ index dcd9fbf7330..e02cad4f9e1 100644
 @@ -97,6 +97,13 @@ distribution_archives {
      }
    }
-​
+
 +  linuxS390xTar {
 +    archiveClassifier = 'linux-s390x'
 +    content {
@@ -106,7 +106,7 @@ index 40d742210c2..e8740ecf81d 100644
 --- a/distribution/docker/build.gradle
 +++ b/distribution/docker/build.gradle
 @@ -65,6 +65,7 @@ testFixtures.useFixture()
-​
+
  configurations {
    aarch64DockerSource
 +  s390xDockerSource
@@ -114,7 +114,7 @@ index 40d742210c2..e8740ecf81d 100644
    log4jConfig
    tini
 @@ -78,6 +79,7 @@ String tiniArch = Architecture.current() == Architecture.AARCH64 ? 'arm64' : 'am
-​
+
  dependencies {
    aarch64DockerSource project(path: ":distribution:archives:linux-aarch64-tar", configuration: 'default')
 +  s390xDockerSource project(path: ":distribution:archives:linux-s390x-tar", configuration: 'default')
@@ -122,7 +122,7 @@ index 40d742210c2..e8740ecf81d 100644
    log4jConfig project(path: ":distribution", configuration: 'log4jConfig')
    tini "krallin:tini:0.19.0:${tiniArch}"
 @@ -128,7 +130,7 @@ private static String toCamel(String input) {
-​
+
  private static String taskName(String prefix, Architecture architecture, DockerBase base, String suffix) {
    return prefix +
 -    (architecture == Architecture.AARCH64 ? 'Aarch64' : '') +
@@ -131,7 +131,7 @@ index 40d742210c2..e8740ecf81d 100644
      suffix
  }
 @@ -187,7 +189,7 @@ tasks.register("copyNodeKeyMaterial", Sync) {
-​
+
  elasticsearch_distributions {
    Architecture.values().each { eachArchitecture ->
 -    "docker_${eachArchitecture == Architecture.AARCH64 ? '_aarch64' : ''}" {
@@ -140,23 +140,23 @@ index 40d742210c2..e8740ecf81d 100644
        type = InternalElasticsearchDistributionTypes.DOCKER
        version = VersionProperties.getElasticsearch()
 @@ -243,7 +245,7 @@ tasks.named("composeUp").configure {
-​
+
  void addBuildDockerContextTask(Architecture architecture, DockerBase base) {
    String configDirectory = base == DockerBase.IRON_BANK ? 'scripts' : 'config'
 -  String arch = architecture == Architecture.AARCH64 ? '-aarch64' : ''
 +  String arch = architecture == Architecture.AARCH64 ? '-aarch64' : architecture == Architecture.S390X ? '-s390x' : ''
-​
+
    final TaskProvider<Tar> buildDockerContextTask =
      tasks.register(taskName('build', architecture, base, 'DockerContext'), Tar) {
 @@ -289,7 +291,7 @@ void addTransformDockerContextTask(Architecture architecture, DockerBase base) {
      TaskProvider<Tar> buildContextTask = tasks.named(taskName("build", architecture, base, "DockerContext"))
      dependsOn(buildContextTask)
-​
+
 -    String arch = architecture == Architecture.AARCH64 ? '-aarch64' : ''
 +    String arch = architecture == Architecture.AARCH64 ? '-aarch64' : architecture == Architecture.S390X ? '-s390x' : ''
      String archiveName = "elasticsearch${base.suffix}-${VersionProperties.elasticsearch}-docker-build-context${arch}"
      String distributionName = "elasticsearch-${VersionProperties.elasticsearch}-linux-${architecture.classifier}.tar.gz"
-​
+
 @@ -307,6 +309,8 @@ void addTransformDockerContextTask(Architecture architecture, DockerBase base) {
      // Since we replaced the remote URL in the Dockerfile, copy in the required file
      if (architecture == Architecture.AARCH64) {
@@ -167,18 +167,18 @@ index 40d742210c2..e8740ecf81d 100644
        from configurations.dockerSource
      }
 @@ -393,7 +397,7 @@ void addBuildDockerImageTask(Architecture architecture, DockerBase base) {
-​
+
  void addBuildEssDockerImageTask(Architecture architecture) {
    DockerBase base = DockerBase.CLOUD_ESS
 -  String arch = architecture == Architecture.AARCH64 ? '-aarch64' : ''
 +  String arch = architecture == Architecture.AARCH64 ? '-aarch64' : architecture == Architecture.S390X ? '-s390x' : ''
    String contextDir = "${project.buildDir}/docker-context/elasticsearch${base.suffix}-${VersionProperties.elasticsearch}-docker-build-context${arch}"
-​
+
    final TaskProvider<Sync> buildContextTask =
 @@ -462,7 +466,7 @@ subprojects { Project subProject ->
    if (subProject.name.endsWith('-export')) {
      apply plugin: 'distribution'
-​
+
 -    final Architecture architecture = subProject.name.contains('aarch64-') ? Architecture.AARCH64 : Architecture.X64
 +    final Architecture architecture = subProject.name.contains('aarch64-') ? Architecture.AARCH64 : subProject.name.contains('s390x-') ? Architecture.S390X : Architecture.X64
      DockerBase base = DockerBase.DEFAULT
@@ -187,7 +187,7 @@ index 40d742210c2..e8740ecf81d 100644
 @@ -474,7 +478,7 @@ subprojects { Project subProject ->
        base = DockerBase.CLOUD
      }
-​
+
 -    final String arch = architecture == Architecture.AARCH64 ? '-aarch64' : ''
 +    final String arch = architecture == Architecture.AARCH64 ? '-aarch64' : architecture == Architecture.S390X ? '-s390x' : ''
      final String extension = base == DockerBase.UBI ? 'ubi.tar' :
@@ -226,7 +226,7 @@ index 6cb3bcfd6c0..6b3b9431fdd 100644
 @@ -316,6 +320,10 @@ tasks.register('buildAarch64Deb', Deb) {
    configure(commonDebConfig('aarch64'))
  }
-​
+
 +tasks.register('buildS390xDeb', Deb) {
 +  configure(commonDebConfig('s390x'))
 +}
@@ -237,14 +237,14 @@ index 6cb3bcfd6c0..6b3b9431fdd 100644
 @@ -353,6 +361,10 @@ tasks.register('buildRpm', Rpm) {
    configure(commonRpmConfig('x64'))
  }
-​
+
 +tasks.register('buildS390xRpm', Rpm) {
 +  configure(commonRpmConfig('s390x'))
 +}
 +
  Closure dpkgExists = { it -> new File('/bin/dpkg-deb').exists() || new File('/usr/bin/dpkg-deb').exists() || new File('/usr/local/bin/dpkg-deb').exists() }
  Closure rpmExists = { it -> new File('/bin/rpm').exists() || new File('/usr/bin/rpm').exists() || new File('/usr/local/bin/rpm').exists() }
-​
+
 diff --git a/settings.gradle b/settings.gradle
 index 48116e829ea..be3ebdc174d 100644
 --- a/settings.gradle

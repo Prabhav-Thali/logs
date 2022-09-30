@@ -15,6 +15,7 @@ PACKAGE_VERSION="4.2.2"
 CURDIR="$PWD"
 LOG_FILE="${CURDIR}/logs/${PACKAGE_NAME}-${PACKAGE_VERSION}-$(date +"%F-%T").log"
 trap cleanup 1 2 ERR
+PATCH="https://raw.githubusercontent.com/linux-on-ibm-z/scripts/master/Bazel/4.2.2/patch"
 TESTS="false"
 FORCE="false"
 

@@ -10,8 +10,8 @@
 
 set -e -o pipefail
 
-PACKAGE_NAME="ruby"
-PACKAGE_VERSION="2.7.2"
+PACKAGE_NAME="bazel"
+PACKAGE_VERSION="4.2.2"
 CURDIR="$PWD"
 LOG_FILE="${CURDIR}/logs/${PACKAGE_NAME}-${PACKAGE_VERSION}-$(date +"%F-%T").log"
 trap cleanup 1 2 ERR
@@ -72,7 +72,7 @@ function runTest() {
 		printf -- 'Running tests \n\n'
 		cd "${CURDIR}/${PACKAGE_NAME}-${PACKAGE_VERSION}"
 		make test
-    printf -- 'Test Completed \n\n'
+    		printf -- 'Test Completed \n\n'
 	fi
 
 }
@@ -83,33 +83,13 @@ function configureAndInstall()
   printf -- 'Configuration and Installation started \n'
  
   #Download the source code
-  printf -- 'Downloading ruby \n'
-  cd "${CURDIR}"
-  wget http://cache.ruby-lang.org/pub/ruby/2.7/ruby-${PACKAGE_VERSION}.tar.gz
-  tar zxf "${PACKAGE_NAME}"-"${PACKAGE_VERSION}".tar.gz
-  cd "${CURDIR}/${PACKAGE_NAME}-${PACKAGE_VERSION}"
-
-  #Building ruby
-  printf -- 'Building ruby \n'
-  ./configure
-  make
-
-  #Installation step
-  sudo -E make install
-
-  export PATH="$PATH:/usr/local/bin"
-
-  #Run tests
-  runTest
-
+  printf -- 'Downloading bazel \n'
+  mkdir bazel && cd bazel
+  wget https://github.com/bazelbuild/bazel/releases/download/$PACKAGE_VERSION/bazel-$PACKAGE_VERSION-dist.zip
+  unzip bazel-$PACKAGE_VERSION-dist.zip
+  chmod -R +w .
   
-  #Verify installation
-  ruby -v
-  gem env
-
-
-  #Clean up the downloaded zip
-  cleanup
+  curl -sSL $PATCH/bazel.patch | git apply -v
 }
 
 function logDetails()
@@ -172,8 +152,8 @@ DISTRO="$ID-$VERSION_ID"
 case "$DISTRO" in
 "ubuntu-18.04" | "ubuntu-20.04" | "ubuntu-20.10")
   printf -- "Installing %s %s for %s \n" "$PACKAGE_NAME" "$PACKAGE_VERSION" "$DISTRO" |& tee -a "$LOG_FILE"
-  sudo apt-get update > /dev/null
-  sudo apt-get install -y  gcc make wget tar bzip2 subversion bison flex openssl libssl-dev |& tee -a "${LOG_FILE}"
+  sudo apt-get update |& tee -a "${LOG_FILE}"
+  sudo apt-get install -y build-essential cargo curl wget curl openjdk-11-jdk unzip patch build-essential zip python3 git  |& tee -a "${LOG_FILE}"
   configureAndInstall |& tee -a "${LOG_FILE}"
   ;;
   

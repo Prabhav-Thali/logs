@@ -90,7 +90,7 @@ function configureAndInstall()
   unzip bazel-$PACKAGE_VERSION-dist.zip
   chmod -R +w .
   
-  curl -sSL $PATCH/bazel.patch | git apply -v --unsafe-paths
+  curl -sSL $PATCH/bazel.patch | patch -v --unsafe-paths
 }
 
 function logDetails()

@@ -186,7 +186,7 @@ prepare #Check Prequisites
 DISTRO="$ID-$VERSION_ID"
 
 case "$DISTRO" in
-"ubuntu-18.04" | "ubuntu-20.04" | "ubuntu-21.10" | "ubuntu-22.04")
+"ubuntu-18.04" | "ubuntu-20.04" | "ubuntu-22.04")
     printf -- "Installing %s %s for %s \n" "$PACKAGE_NAME" "$PACKAGE_VERSION" "$DISTRO" |& tee -a "$LOG_FILE"
     printf -- "Installing dependencies... it may take some time.\n"
     sudo apt-get update
@@ -206,7 +206,7 @@ case "$DISTRO" in
     source /opt/rh/rh-git227/enable
     configureAndInstall |& tee -a "$LOG_FILE"
     ;;	
-"rhel-8.4" | "rhel-8.5" | "rhel-8.6" | "rh9.0")
+"rhel-8.4" | "rhel-8.6" | "rhel-9.0")
     printf -- "Installing %s %s for %s \n" "$PACKAGE_NAME" "$PACKAGE_VERSION" "$DISTRO" |& tee -a "$LOG_FILE"
     printf -- "Installing dependencies... it may take some time.\n"
     sudo yum install -y curl tar wget make gcc dos2unix perl patch pcre-devel zlib-devel perl-App-cpanminus git |& tee -a "$LOG_FILE"

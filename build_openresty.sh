@@ -80,7 +80,7 @@ function configureAndInstall() {
     ./config no-threads shared enable-ssl3 enable-ssl3-method -g --prefix=$OPENSSL_PREFIX -DPURIFY
     make -j$(nproc)
     sudo make PATH=$PATH install_sw
-    if [[ ${DISTRO} =~ rhel-7\.[8-9] || ${DISTRO} == sles-12.5 ]]; then
+    if [[ ${DISTRO} =~ rhel-7\.[8-9] || ${DISTRO} == rhel-9.0 || ${DISTRO} == sles-12.5 ]]; then
         sudo ln -s /usr/local/lib64/libssl.so.1.1 /usr/lib64/libssl.so.1.1
         sudo ln -s /usr/local/lib64/libcrypto.so.1.1 /usr/lib64/libcrypto.so.1.1
     fi

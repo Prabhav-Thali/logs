@@ -1,5 +1,5 @@
 #!/bin/bash
-# © Copyright IBM Corporation 2022.
+# © Copyright IBM Corporation 2021, 2022.
 # LICENSE: Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
 #
 # Instructions:
@@ -221,7 +221,7 @@ case "$DISTRO" in
     curl -L https://cpanmin.us | perl - --sudo App::cpanminus
     configureAndInstall |& tee -a "$LOG_FILE"
     ;;
-"sles-15.3")
+"sles-15.3" | "sles-15.4")
     printf -- "Installing %s %s for %s \n" "$PACKAGE_NAME" "$PACKAGE_VERSION" "$DISTRO" |& tee -a "$LOG_FILE"
     printf -- "Installing dependencies... it may take some time.\n"
     sudo zypper install -y git curl tar wget make gcc dos2unix perl patch pcre-devel gzip zlib-devel perl-App-cpanminus |& tee -a "$LOG_FILE"

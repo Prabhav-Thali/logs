@@ -1,8 +1,0 @@
-{
-  "packageName" : "Maven",
-  "publishedVersion" : "3.8.6",
-  "publishedDate" : "2022-12-01",
-  "org" : "apache",
-  "repo" : "maven",
-  "distros" : "rh7.9, rh7.9, rh8.4, rh9.1"
-}
